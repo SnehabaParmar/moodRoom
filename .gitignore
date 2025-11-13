@@ -1,0 +1,20 @@
+# Virtual environments and dependencies
+whisper_env/
+venv/
+__pycache__/
+*.pyc
+
+# Large binaries
+*.exe
+*.dll
+*.zip
+*.rar
+
+# Secrets and configuration
+.env
+*.env
+
+# Node and build files (if any)
+node_modules/
+dist/
+build/
