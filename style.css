@@ -1,0 +1,173 @@
+#emoji-container .emoji {
+  position: absolute;
+  transition: all 1.5s ease;
+  opacity: 0;
+}
+
+body {
+  min-height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(to top, #022e64, #6193e8, #cc43db, #ce7dbd);
+  /* same as welcome section */
+}
+
+
+#welcome-section {
+  transition: clip-path 1s ease;
+  clip-path: inset(0 0 0 0);
+}
+
+
+/* Bounce-in animation for welcome page */
+@keyframes bounceIn {
+  0% {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+
+  60% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+
+  80% {
+    transform: translateY(5px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.bounce-in {
+  animation: bounceIn 1s ease forwards;
+}
+
+/* Float animation after spread */
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+
+#result-section {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+  color: #333;
+  font-family: 'Poppins', sans-serif;
+}
+
+#result-text {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+#result-emoji {
+  font-size: 6rem;
+  margin-bottom: 20px;
+  transition: transform 0.8s ease;
+}
+
+#try-again-btn:hover {
+  background: #6366f1;
+  transform: scale(1.05);
+}
+
+
+#submit-btn {
+  padding: 0.5rem 1rem;
+  margin-left: 1rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: none;
+  background-color: #4f46e5;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+#submit-btn:hover {
+  background-color: #4338ca;
+}
+
+/* Fade animation for popup */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Mic wave animation */
+.mic-wave {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #6366f1 30%, transparent 70%);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.3);
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+Popup styling
+/* #voice-popup { */
+  /* transition: all 0.3s ease-in-out; */
+/* } */
+
+#voice-popup.active {
+  display: flex;
+}
+
+#voice-popup {
+  backdrop-filter: blur(4px);
+  transition: opacity 0.3s ease;
+}
+
+#recognized-text {
+  font-family: "Poppins", sans-serif;
+  white-space: pre-wrap;
+}

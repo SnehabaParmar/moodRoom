@@ -1,0 +1,118 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Disgust Emotion Theme</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Poppins", sans-serif;
+    background: linear-gradient(135deg, #3e6632, #7da96c, #9fb88a, #556b2f);
+    background-size: 300% 300%;
+    animation: slimeFlow 10s ease-in-out infinite;
+    position: relative;
+  }
+
+  @keyframes slimeFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* h1 {
+    color: #d9ffb3;
+    font-size: clamp(2rem, 5vw, 3rem);
+    text-shadow: 0 0 10px rgba(0,0,0,0.6);
+    z-index: 10;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 0.9; }
+    100% { transform: scale(1.05); opacity: 1; }
+  } */
+
+  .bubble {
+    position: absolute;
+    bottom: -50px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #9acd32, #6b8e23, #556b2f);
+    /* opacity: 0.2; */
+    /* filter: blur(0.2rem); */
+    animation: floatUp linear forwards;
+  }
+
+  @keyframes floatUp {
+    0% { transform: translateY(0) scale(0.9); opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { transform: translateY(-110vh) scale(1.2); opacity: 0; }
+  }
+
+  .emoji {
+    position: absolute;
+    bottom: -50px;
+    animation: rise 8s ease-in infinite;
+    opacity: 0.5;
+  }
+
+  @keyframes rise {
+    0% { transform: translateY(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-110vh); opacity: 0; }
+  }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+  <!-- <h1>🤢 Feeling Disgusted</h1> -->
+
+  <script>
+    const emojis = ["🤢", "🤮", "😖", "😬", "😒"];
+
+    // Create slime bubbles
+    function createBubble() {
+      const bubble = document.createElement("div");
+      bubble.classList.add("bubble");
+      const size = Math.random() * 60 + 20; // 20px to 80px
+      bubble.style.width = `${size}px`;
+      bubble.style.height = `${size}px`;
+      bubble.style.left = `${Math.random() * 100}vw`;
+      bubble.style.animationDuration = `${4 + Math.random() * 3}s`;
+      document.body.appendChild(bubble);
+      setTimeout(() => bubble.remove(), 7000);
+    }
+
+    // Create emoji bubbles
+    function createEmoji() {
+      const emoji = document.createElement("div");
+      emoji.classList.add("emoji");
+      emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      emoji.style.left = `${Math.random() * 100}vw`;
+      emoji.style.fontSize = `${Math.random() * 1.5 + 1.5}rem`;
+      emoji.style.animationDuration = `${5 + Math.random() * 4}s`;
+      document.body.appendChild(emoji);
+      setTimeout(() => emoji.remove(), 9000);
+    }
+
+    // Run after page is loaded
+    window.onload = () => {
+      setInterval(createBubble, 600);
+      setInterval(createEmoji, 1000);
+    };
+  </script>
+</body>
+</html>

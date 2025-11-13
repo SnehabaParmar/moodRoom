@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🧠 Mind Maze</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html,body {
+      height: 100%;
+      margin: 0;
+    }
+    body {
+      background: radial-gradient(circle at 30% 20%, #222831, #111418);
+      color: #e0e0e0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Canvas container */
+    #canvasWrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    canvas {
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      touch-action: none;
+      transition: all 0.2s ease;
+    }
+
+    /* Mobile directional controls */
+    .controls {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: grid;
+      grid-template-columns: repeat(3, 60px);
+      grid-template-rows: repeat(2, 60px);
+      justify-items: center;
+      align-items: center;
+      gap: 10px;
+      z-index: 40;
+    }
+
+    .control-btn {
+      width: 56px; height: 56px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #eee;
+      font-size: 20px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .control-btn:hover { background: rgba(255,255,255,0.15); }
+
+    @media(min-width:768px){
+      .controls { display: none; }
+    }
+
+    /* Buttons */
+    button {
+      transition: all 0.25s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-start min-h-screen text-white">
+
+  <header class="w-full max-w-3xl mt-8 px-6">
+    <h1 class="text-3xl font-semibold text-teal-400">🧠 Mind Maze</h1>
+    <p class="text-sm opacity-80 mt-1">Navigate to the glowing exit — use arrows/WASD or touch buttons.</p>
+  </header>
+
+  <div id="canvasWrap" class="w-full max-w-3xl flex-1">
+    <canvas id="mazeCanvas"></canvas>
+  </div>
+
+  <div class="w-full max-w-3xl px-6 mb-6 flex items-center justify-between">
+    <div class="flex gap-3">
+      <button id="regen" class="px-4 py-2 rounded-lg bg-teal-500/20 hover:bg-teal-500/30">New Maze</button>
+      <button id="solveHint" class="px-4 py-2 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30">Hint</button>
+    </div>
+    <div class="text-sm opacity-90">Steps: <span id="steps">0</span></div>
+  </div>
+
+  <!-- Mobile Controls -->
+  <div class="controls">
+    <div></div>
+    <div id="upBtn" class="control-btn">⬆️</div>
+    <div></div>
+    <div id="leftBtn" class="control-btn">⬅️</div>
+    <div id="downBtn" class="control-btn">⬇️</div>
+    <div id="rightBtn" class="control-btn">➡️</div>
+  </div>
+
+<script>
+const canvas = document.getElementById('mazeCanvas');
+const ctx = canvas.getContext('2d');
+const stepsEl = document.getElementById('steps');
+const regenBtn = document.getElementById('regen');
+const hintBtn = document.getElementById('solveHint');
+
+let GRID = 21;
+let grid, player, goal, cellSizePx, steps = 0, DPR = window.devicePixelRatio || 1;
+
+function fitCanvas() {
+  const wrap = document.getElementById('canvasWrap');
+  const rect = wrap.getBoundingClientRect();
+  const side = Math.min(rect.width, window.innerHeight - 220);
+  canvas.style.width = side + 'px';
+  canvas.style.height = side + 'px';
+  canvas.width = side * DPR;
+  canvas.height = side * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  cellSizePx = side / GRID;
+}
+
+function makeEmptyGrid(n){
+  const g = Array(n).fill().map(()=>Array(n).fill(1));
+  return g;
+}
+
+function generateMaze(size){
+  GRID = size;
+  grid = makeEmptyGrid(GRID);
+  const dirs = [[0,-2],[2,0],[0,2],[-2,0]];
+  const stack = [[1,1]];
+  grid[1][1]=0;
+  while(stack.length){
+    const [cx,cy]=stack.at(-1);
+    const neighbors=[];
+    for(const [dx,dy] of dirs){
+      const nx=cx+dx, ny=cy+dy;
+      if(nx>0&&ny>0&&nx<GRID-1&&ny<GRID-1&&grid[ny][nx]===1){
+        neighbors.push([nx,ny,dx,dy]);
+      }
+    }
+    if(!neighbors.length){ stack.pop(); }
+    else{
+      const [nx,ny,dx,dy]=neighbors[Math.floor(Math.random()*neighbors.length)];
+      grid[cy+dy/2][cx+dx/2]=0;
+      grid[ny][nx]=0;
+      stack.push([nx,ny]);
+    }
+  }
+  player={x:1,y:1};
+  goal={x:GRID-2,y:GRID-2};
+  steps=0;
+  stepsEl.textContent=steps;
+}
+
+function canMoveTo(x,y){ return grid[y] && grid[y][x]===0; }
+
+function moveDir(dx,dy){
+  // move in one direction until wall or intersection
+  let nx = player.x, ny = player.y;
+  while(true){
+    const nextX = nx + dx, nextY = ny + dy;
+    if(!canMoveTo(nextX,nextY)) break;
+    nx = nextX; ny = nextY;
+    const options = [[0,1],[1,0],[0,-1],[-1,0]].filter(([a,b])=>canMoveTo(nx+a,ny+b));
+    if(options.length>2) break; // stop at intersection
+  }
+  if(nx!==player.x || ny!==player.y){
+    player.x=nx; player.y=ny;
+    steps++; stepsEl.textContent=steps;
+    draw();
+    if(player.x===goal.x&&player.y===goal.y){
+      setTimeout(()=>{alert('✨ Maze cleared! Calm mind achieved.');generateMazeAndDraw();},200);
+    }
+  }
+}
+
+function findNextStep(){
+  // BFS to find next step only
+  const q=[player];
+  const parent=Array(GRID).fill().map(()=>Array(GRID).fill(null));
+  const dirs=[[0,1],[1,0],[0,-1],[-1,0]];
+  parent[player.y][player.x]='start';
+  while(q.length){
+    const cur=q.shift();
+    if(cur.x===goal.x && cur.y===goal.y) break;
+    for(const [dx,dy] of dirs){
+      const nx=cur.x+dx, ny=cur.y+dy;
+      if(canMoveTo(nx,ny)&&!parent[ny][nx]){
+        parent[ny][nx]=cur;
+        q.push({x:nx,y:ny});
+      }
+    }
+  }
+  // backtrack one step
+  let cur={x:goal.x,y:goal.y};
+  if(!parent[cur.y][cur.x]) return null;
+  while(parent[cur.y][cur.x]!=='start'){
+    const prev=parent[cur.y][cur.x];
+    if(prev.x===player.x && prev.y===player.y) return cur;
+    cur=prev;
+  }
+  return null;
+}
+
+function draw(hint=null){
+  ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
+  ctx.fillStyle='rgba(255,255,255,0.08)';
+  for(let y=0;y<GRID;y++){
+    for(let x=0;x<GRID;x++){
+      if(grid[y][x]===1)
+        ctx.fillRect(x*cellSizePx,y*cellSizePx,cellSizePx,cellSizePx);
+    }
+  }
+
+  // goal glow
+  const gx=goal.x*cellSizePx+cellSizePx/2, gy=goal.y*cellSizePx+cellSizePx/2;
+  ctx.beginPath();
+  const grad=ctx.createRadialGradient(gx,gy,2,gx,gy,cellSizePx*0.8);
+  grad.addColorStop(0,'#00ffc6');
+  grad.addColorStop(1,'transparent');
+  ctx.fillStyle=grad;
+  ctx.arc(gx,gy,cellSizePx*0.6,0,Math.PI*2);
+  ctx.fill();
+
+  // hint (only next step highlight)
+  if(hint){
+    ctx.beginPath();
+    ctx.fillStyle='rgba(0,255,255,0.4)';
+    ctx.arc(hint.x*cellSizePx+cellSizePx/2,hint.y*cellSizePx+cellSizePx/2,cellSizePx*0.3,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  // player
+  const px=player.x*cellSizePx+cellSizePx/2, py=player.y*cellSizePx+cellSizePx/2;
+  ctx.beginPath();
+  ctx.fillStyle='#ffffff';
+  ctx.arc(px,py,cellSizePx*0.3,0,Math.PI*2);
+  ctx.fill();
+}
+
+function generateMazeAndDraw(){
+  generateMaze(GRID);
+  fitCanvas();
+  draw();
+}
+
+window.addEventListener('resize', ()=>{fitCanvas();draw();});
+
+window.addEventListener('keydown', (e)=>{
+  const key=e.key.toLowerCase();
+  if(['arrowup','w'].includes(key)) moveDir(0,-1);
+  if(['arrowdown','s'].includes(key)) moveDir(0,1);
+  if(['arrowleft','a'].includes(key)) moveDir(-1,0);
+  if(['arrowright','d'].includes(key)) moveDir(1,0);
+});
+
+document.getElementById('upBtn').onclick=()=>moveDir(0,-1);
+document.getElementById('downBtn').onclick=()=>moveDir(0,1);
+document.getElementById('leftBtn').onclick=()=>moveDir(-1,0);
+document.getElementById('rightBtn').onclick=()=>moveDir(1,0);
+
+regenBtn.onclick=()=>generateMazeAndDraw();
+hintBtn.onclick=()=>{
+  const next=findNextStep();
+  draw(next);
+  setTimeout(()=>draw(),1200);
+};
+
+(function init(){ fitCanvas(); generateMazeAndDraw(); })();
+</script>
+</body>
+</html>

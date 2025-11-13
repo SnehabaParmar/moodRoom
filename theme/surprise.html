@@ -1,0 +1,198 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Surprise Emotion Theme</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }   
+
+    body {
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+        background: url("https://media.istockphoto.com/id/655660368/photo/happy-birthday.jpg?s=612x612&w=0&k=20&c=9-82zqhzoOTyQ7pdfTZ0yrLPyRX8uzM-emD3Wpr0qpQ=") no-repeat center/cover;
+       /* opacity: 0.60; */
+      position: relative;
+      font-family: 'Poppins', sans-serif;
+
+    }
+
+    @keyframes bgShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .fog{
+      font-size: 100px;
+     align-items: center;
+    
+    }
+
+    /* h1 {
+      color: rgb(0, 0, 0);
+      font-size: clamp(2rem, 5vw, 3rem);
+      animation: pop 1.5s ease-in-out infinite alternate;
+      margin-top: 250px;
+    text-shadow: 0 0 10px rgba(0,0,0,0.6);
+    z-index: 10;
+ 
+    
+    } */
+
+.break {
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: rgba(3, 95, 148, 0.712);
+  position: absolute;
+  bottom: 10%;
+  /* right: 10%; */
+  
+}
+
+
+    @keyframes pop {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.05); }
+    }
+
+    .confetti {
+      position: absolute;
+      animation: fall 1s linear forwards;
+      opacity: 0;
+      z-index: 5;
+      top: 0;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(110vh) scale(1.5) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    .pop-circle {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff5 0%, transparent 70%);
+      transform: scale(0);
+      animation: popCircle 0.6s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes popCircle {
+      0% { transform: scale(0); opacity: 1; }
+      100% { transform: scale(4); opacity: 0; }
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 2rem;
+           
+      }
+    }
+  </style>
+</head>
+<body>
+
+   
+  <!-- <h1>😲 Feeling Surprise!</h1> -->
+
+ <h2 class="break">Click anywhere for surprise pop burst!</h2> 
+  <script>
+    const emojis = ["🎉", "✨", "🎈", "🎊", "🤩", "❗", "❓","🎶","🎆","🎇","🎀","🎁"];  
+      
+    function createConfetti(x, y) {
+      for (let i = 0; i < 20; i++) {
+        const conf = document.createElement("div");
+        conf.classList.add("confetti");
+        conf.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        
+        // start at given (x,y)
+        conf.style.left = x + "px";
+        conf.style.top = y + "px";
+
+        // random movement
+        const xMove = (Math.random() - 0.5) * window.innerWidth * 1.5;
+        const yMove = (Math.random() - 0.5) * window.innerHeight * 1.5;
+
+        conf.animate([
+          { transform: `translate(0, 0) scale(1)`, opacity: 2 },
+          { transform: `translate(${xMove}px, ${yMove}px) scale(1.5) rotate(360deg)`, opacity: 0 }
+        ], {
+          duration: 2000 + Math.random() * 1000,
+          easing: 'ease-out',
+          fill: 'forwards'
+        });
+
+        conf.style.fontSize = Math.random() * 1.5 + 1 + "rem";
+        document.body.appendChild(conf);
+        setTimeout(() => conf.remove(), 2000);
+      }
+    }
+
+    function createPopEffect(x, y) {
+      const circle = document.createElement("div");
+      circle.classList.add("pop-circle");
+      circle.style.left = `${x - 50}px`;
+      circle.style.top = `${y - 50}px`;
+      circle.style.width = "100px";
+      circle.style.height = "100px";
+      document.body.appendChild(circle);
+      setTimeout(() => circle.remove(), 600);
+    }
+
+    // 🎊 Perfect centered pop when page loads
+    window.onload = () => {
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      createConfetti(centerX, centerY);
+      createPopEffect(centerX, centerY);
+    };
+
+    // 💥 Click anywhere → pop effect
+    document.addEventListener("click", (e) => {
+      createConfetti(e.clientX, e.clientY);
+      createPopEffect(e.clientX, e.clientY);
+    });
+    
+
+    const emojis2 = ["😲"];  
+    function create() {
+      const conf = document.createElement("div");
+      conf.classList.add("confetti");
+      conf.textContent = emojis2[Math.floor(Math.random() * emojis2.length)];
+      conf.style.left = Math.random() * 100 + "vw";
+      conf.style.animationDuration = (5 + Math.random() * 2) + "s";
+      conf.style.fontSize = Math.random() * 1.5 + 1 + "rem";
+      document.body.appendChild(conf);
+
+      setTimeout(() => conf.remove(), 10000);
+
+    }
+
+    setInterval(create, 700);
+
+  </script>    
+</body>
+</html>
+
+
+<!-- ⭐🌟❇🌠☀⛅🌞🌻🔆💮🌸🌺🌼😲😮😯 -->
+

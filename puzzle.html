@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soothing Image Puzzle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #dbeafe, #f0fdf4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: "Poppins", sans-serif;
+      overflow: hidden;
+    }
+    #puzzle-wrapper {
+      width: 300px;
+      height: 300px;  /* ⬅️ reserve space to avoid layout jump */
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #puzzle-container {
+      position: absolute;
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 2px;
+    }
+    .tile {
+      width: 100px;
+      height: 100px;
+      background-size: 300px 300px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .tile:hover {
+      transform: scale(1.05);
+    }
+    #message {
+      font-size: 1.2rem;
+      margin-top: 15px;
+      color: #2563eb;
+      font-weight: 600;
+    }
+    #hint {
+      margin-top: 10px;
+      background: #86efac;
+      color: #065f46;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    #hint:hover {
+      background: #4ade80;
+    }
+    #preview {
+      width: 300px;
+      height: 300px;
+      border-radius: 10px;
+      display: none;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 class="text-2xl font-semibold text-blue-700">🧩 Soothing Image Puzzle</h1>
+  <div id="puzzle-wrapper">
+    <div id="puzzle-container"></div>
+    <img id="preview" alt="Preview Image">
+  </div>
+  <div id="message"></div>
+  <button id="hint">💡 Hint</button>
+
+  <script>
+    const puzzle = document.getElementById("puzzle-container");
+    const wrapper = document.getElementById("puzzle-wrapper");
+    const previewImg = document.getElementById("preview");
+    const message = document.getElementById("message");
+    const hintButton = document.getElementById("hint");
+
+    const size = 3;
+    const totalTiles = size * size;
+    let tiles = [];
+    let selectedTiles = [];
+    let imageUrl = "";
+
+    // Load random soothing image
+    function loadRandomImage() {
+      imageUrl = `https://picsum.photos/300?random=${Math.floor(Math.random() * 1000)}`;
+      previewImg.src = imageUrl;
+      previewImg.style.display = "none";
+
+      previewImg.onload = () => {
+        showPreview();
+      };
+    }
+
+    // Show preview for 3 seconds
+    function showPreview() {
+      puzzle.innerHTML = "";
+      previewImg.style.display = "block";
+      setTimeout(() => {
+        previewImg.style.display = "none";
+        initPuzzle();
+      }, 3000);
+    }
+
+    // Initialize puzzle grid
+    function initPuzzle() {
+      puzzle.innerHTML = "";
+      tiles = [];
+
+      for (let i = 0; i < totalTiles; i++) {
+        const tile = document.createElement("div");
+        tile.classList.add("tile");
+        const x = (i % size) * -100;
+        const y = Math.floor(i / size) * -100;
+        tile.style.backgroundImage = `url(${imageUrl})`;
+        tile.style.backgroundPosition = `${x}px ${y}px`;
+        tile.dataset.correct = i;
+        tiles.push(tile);
+        puzzle.appendChild(tile);
+        tile.addEventListener("click", () => selectTile(tile));
+      }
+      shuffleTiles();
+    }
+
+    // Shuffle tiles
+    function shuffleTiles() {
+      for (let i = tiles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [tiles[i].style.backgroundPosition, tiles[j].style.backgroundPosition] =
+        [tiles[j].style.backgroundPosition, tiles[i].style.backgroundPosition];
+        [tiles[i].dataset.correct, tiles[j].dataset.correct] =
+        [tiles[j].dataset.correct, tiles[i].dataset.correct];
+      }
+    }
+
+    // Select two tiles to swap
+    function selectTile(tile) {
+      tile.style.border = "2px solid #2563eb";
+      selectedTiles.push(tile);
+
+      if (selectedTiles.length === 2) {
+        swapTiles(selectedTiles[0], selectedTiles[1]);
+        selectedTiles.forEach(t => t.style.border = "none");
+        selectedTiles = [];
+        if (checkSolved()) {
+          message.textContent = "✨ Calm achieved! Puzzle solved!";
+          setTimeout(() => {
+            message.textContent = "";
+            loadRandomImage();
+          }, 1500);
+        }
+      }
+    }
+
+    // Swap tiles
+    function swapTiles(tile1, tile2) {
+      [tile1.style.backgroundPosition, tile2.style.backgroundPosition] =
+      [tile2.style.backgroundPosition, tile1.style.backgroundPosition];
+      [tile1.dataset.correct, tile2.dataset.correct] =
+      [tile2.dataset.correct, tile1.dataset.correct];
+    }
+
+    // Check if solved
+    function checkSolved() {
+      for (let i = 0; i < totalTiles; i++) {
+        const correctX = (i % size) * -100 + "px";
+        const correctY = Math.floor(i / size) * -100 + "px";
+        const tile = tiles[i];
+        if (tile.style.backgroundPosition !== `${correctX} ${correctY}`) return false;
+      }
+      return true;
+    }
+
+    // Hint button
+    hintButton.addEventListener("click", () => {
+      const hintImg = document.createElement("img");
+      hintImg.src = imageUrl;
+      hintImg.style.width = "300px";
+      hintImg.style.height = "300px";
+      hintImg.style.position = "absolute";
+      hintImg.style.borderRadius = "10px";
+      hintImg.style.opacity = "0.9";
+      hintImg.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
+      wrapper.appendChild(hintImg);
+      setTimeout(() => hintImg.remove(), 2000);
+    });
+
+    loadRandomImage();
+  </script>
+</body>
+</html>
