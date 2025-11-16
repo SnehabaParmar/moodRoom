@@ -16,188 +16,123 @@ body{
     position: absolute;
     width:140%; height:140%;
     background: url("https://i.ytimg.com/vi/GYa5IcAoo08/maxresdefault.jpg")no-repeat center/cover;
-    opacity:0.90;
-    /* animation: fogMove 18s linear infinite alternate; */
+    opacity:0.85;
+    animation: fogMove 20s linear infinite alternate;
 }
 @keyframes fogMove{
     0%{transform:translate(-20%, -10%) scale(1.2);}
-    100%{transform:translate(10%, 20%) scale(1.4);}
+    100%{transform:translate(-10%, -20%) scale(1.4);}
 }
-
-/* title box */
-/* .container{
-    position:relative;
-    text-align:center;
-    color:white;
-    z-index:10;
-}
-.mood-emoji {
-  font-size: 75px;
-  margin-bottom: 10px;
-}
-.title {
-    font-size:32px;
-    font-weight:700;
-    color:#76e6fc;
-    text-shadow: 0 0 15px #4ad7ff, 0 0 25px #4ad7ff;
-    animation: flicker 2s infinite alternate;
-}
-@keyframes flicker {
-    0% {opacity:1;}
-    50% {opacity:0.8;}
-    100% {opacity:1;}
-} */
-
-
 
 /* ghost bubbles */
 .bubble{
     position:absolute;
-    background:rgba(160,200,255,0.18);
+    background:rgba(160,200,255,0.15);
     border-radius:50%;
     display:flex; justify-content:center; align-items:center;
     font-size:30px;
-    animation: floatUp 9s linear infinite;
+    animation: floatUp 9s linear forwards;
     backdrop-filter: blur(6px);
     color:white;
+    opacity:0;
 }
-
-/* float animation */
 @keyframes floatUp{
     0%{transform:translateY(100vh) scale(0.7); opacity:0;}
-    50%{opacity:1;}
+    30%{opacity:0.8;}
     100%{transform:translateY(-15vh) scale(1.3); opacity:0;}
 }
 
-/* tiny glowing fear fireflies */
+/* tiny glowing sparks */
 .spark{
     position:absolute;
     width:4px; height:4px;
     background:#b3eafe;
     border-radius:50%;
     opacity:0.8;
-    animation: sparkMove 4s linear infinite;
+    animation: sparkMove 4s linear forwards;
 }
 @keyframes sparkMove{
-    0%{transform:translateY(100vh);}
-    100%{transform:translateY(-120vh);}
+    0%{transform:translateY(100vh); opacity:0;}
+    20%{opacity:1;}
+    100%{transform:translateY(-120vh); opacity:0;}
 }
 
-/* 🌈 Responsive Design — Works for all Emotion Themes */
-
-/* Tablets and smaller laptops */
-@media (max-width: 1024px) {
-  h1 {
-    font-size: 2.2rem;
-    margin-top: 2rem;
-  }
-  .center-glow {
-    width: 300px;
-    height: 300px;
-  }
-  .bubble {
-    font-size: 1.4rem;
-  }
+/* ghosts coming randomly */
+.ghost{
+    position:absolute;
+    font-size:50px;
+    opacity:0;
+    pointer-events:none;
+    animation: ghostMove 10s linear forwards;
 }
-
-/* Mobile devices */
-@media (max-width: 768px) {
-  body {
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-  }
-
-  h1 {
-    font-size: 1.6rem;
-    padding: 0 10px;
-    line-height: 1.3;
-    text-align: center;
-  }
-
-  .center-glow {
-    width: 200px;
-    height: 200px;
-    filter: blur(40px);
-  }
-
-  .bubble {
-    font-size: 1.2rem;
-    animation-duration: 5s !important;
-  }
-
-  .spark {
-    width: 3px;
-    height: 3px;
-  }
-
-  .firework {
-    width: 3px;
-    height: 3px;
-  }
+@keyframes ghostMove{
+    0%{opacity:0; transform: translate(var(--startX), var(--startY)) scale(0.5);}
+    20%{opacity:0.8;}
+    80%{opacity:0.8;}
+    100%{opacity:0; transform: translate(var(--endX), var(--endY)) scale(1);}
 }
-
-/* Small phones */
-@media (max-width: 480px) {
-  h1 {
-    font-size: 1.2rem;
-  }
-
-  .center-glow {
-    width: 150px;
-    height: 150px;
-  }
-
-  .bubble {
-    font-size: 1rem;
-  }
-}
-
 </style>
 </head>
 <body>
 
 <div class="fog"></div>
 
-<!-- <div class="container">
-    <div class="mood-emoji">😱</div><br>
-    <div class="title">You Are Feeling Fearful</div>
-    
-</div> -->
-
 <script>
 // Emojis for fear mood
-const fear = ["😱","👻","👀","😰","🕷️","😨"];
+const fear = ["😱","👻","👀","😨","🕷️","😰"];
 
+// Ghosts appear from random side and disappear
+function ghost(){
+    const g = document.createElement("div");
+    g.className = "ghost";
+    g.textContent = fear[Math.floor(Math.random()*fear.length)];
+
+    // Random start and end positions
+    const startX = (Math.random() > 0.5 ? '-10vw' : '110vw');
+    const endX = (Math.random() > 0.5 ? '110vw' : '-10vw');
+    const startY = Math.random()*80 + 'vh';
+    const endY = (Math.random()*80 + 'vh');
+
+    g.style.setProperty('--startX', startX);
+    g.style.setProperty('--startY', startY);
+    g.style.setProperty('--endX', endX);
+    g.style.setProperty('--endY', endY);
+    g.style.animationDuration = (6 + Math.random()*6) + "s";
+
+    document.body.appendChild(g);
+    setTimeout(()=>g.remove(), 12000);
+}
+
+// Ghosts spawn occasionally
+setInterval(ghost, 2000);
+
+// Floating bubbles
 function bubble(){
     const b=document.createElement("div");
     b.className="bubble";
-    let size=Math.random()*85+45;
+    let size=Math.random()*80+40;
     b.style.width=size+"px";
     b.style.height=size+"px";
     b.style.left=Math.random()*100+"vw";
-    b.style.animationDuration=(4+Math.random()*4)+"s";
+    b.style.animationDuration=(6+Math.random()*4)+"s";
     b.textContent = fear[Math.floor(Math.random()*fear.length)];
     document.body.appendChild(b);
-    setTimeout(()=>b.remove(),9000);
+    setTimeout(()=>b.remove(),10000);
 }
+for(let i=0;i<6;i++){ setTimeout(bubble,i*100); }
+setInterval(bubble,500);
 
-// spawn many bubbles instantly
-for(let i=0;i<8;i++){ setTimeout(bubble, i*80); }
-setInterval(bubble,300);
-
-// tiny glowing sparks for spooky effect
+// Tiny glowing sparks
 function spark(){
     const s=document.createElement("div");
     s.className="spark";
     s.style.left = Math.random()*100+"vw";
     s.style.animationDuration=(2+Math.random()*3)+"s";
     document.body.appendChild(s);
-    setTimeout(()=>s.remove(),4000);
+    setTimeout(()=>s.remove(),5000);
 }
 setInterval(spark,300);
-</script>
 
+</script>
 </body>
 </html>

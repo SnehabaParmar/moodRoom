@@ -240,6 +240,8 @@ function applyTheme(emotion) {
 
   const themes = {
     admiration : "theme/admiration.html",
+    annoyance : "theme/anger.html",
+    curiosity : "theme/curious.html",
     joy: "theme/happy.html",
     sadness: "theme/sad.html",
     anger: "theme/anger.html",
