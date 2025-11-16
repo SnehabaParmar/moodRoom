@@ -12,92 +12,119 @@
 
 <body class="min-h-screen overflow-hidden">
 
-  <!-- ===== Section 1: Welcome ===== -->
-  <section id="welcome-section" class="absolute inset-0 flex items-center justify-between px-10">
-    <!-- Left side: Text + Button -->
-    <div class="md:w-1/2 text-left z-10">
-      <h1 class="text-5xl font-bold mb-6 text-white">Welcome to Mood Tracker</h1>
-      <p class="text-white text-lg mb-8">Discover your mood and get personalized suggestions!</p>
-      <button id="start-btn"
-        class="bg-white hover:bg-gray-200 text-gray-800 font-semibold py-3 px-8 rounded-full shadow-lg transition">
-        Start
-      </button>
+  <section id="welcome-section" class="relative w-full h-screen overflow-hidden">
+
+    <!-- BACKGROUND SHAPES (bottom layer) -->
+    <div class="floating-shapes pointer-events-none">
+      <div class="shape s1"></div>
+      <div class="shape s2"></div>
+      <div class="shape s3"></div>
+      <div class="shape s4"></div>
+    </div>
+
+    <!-- TEXT + BUTTON (top layer) -->
+    <div id="wel-txt">
+      <div class="absolute inset-0 flex items-center justify-between px-10 z-30">
+        <div class="md:w-1/2">
+          <h1 class="text-5xl font-bold mb-6 text-white">Welcome to Mood Tracker</h1>
+          <p class="text-white text-lg mb-8">Discover your mood and get personalized suggestions!</p>
+          <button id="start-btn"
+            class="bg-white hover:bg-gray-200 text-gray-800 font-semibold py-3 px-8 rounded-full shadow-lg transition">
+            Start
+          </button>
+        </div>
+      </div>
     </div>
   </section>
 
-
-  <div id="emoji-container">
-    <div class="emoji text-6xl" style="top:3%; left:70%;">😑</div>
+  <!-- EMOJIS (middle layer) -->
+  <div id="emoji-container" class="absolute inset-0 z-20">
+    <!-- your emojis stay SAME -->
+    <div class="emoji text-6xl" style="top:3%; left:70%;">😄</div>
     <div class="emoji text-7xl" style="top:9%; left:80%;">😫</div>
     <div class="emoji text-8xl" style="top:15%; left:60%;">😍</div>
-    <div class="emoji text-6xl" style="top:24%; left:85%;">😊</div>
+    <div class="emoji text-6xl" style="top:24%; left:85%;">😵‍💫</div>
     <div class="emoji text-7xl" style="top:30%; left:75%;">😨</div>
-    <div class="emoji text-7xl" style="top:40%; left:65%;">🤔</div>
+    <div class="emoji text-7xl" style="top:40%; left:65%;">🥳</div>
     <div class="emoji text-8xl" style="top:48%; left:80%;">😒</div>
-    <div class="emoji text-7xl" style="top:56%; left:60%;">😖</div>
-    <div class="emoji text-7xl" style="top:64%; left:75%;">😠</div>
+    <div class="emoji text-7xl" style="top:56%; left:60%;">😎</div>
+    <div class="emoji text-7xl" style="top:64%; left:75%;">😡</div>
     <div class="emoji text-6xl" style="top:72%; left:65%;">😢</div>
     <div class="emoji text-7xl" style="top:78%; left:87%;">😲</div>
     <div class="emoji text-8xl" style="top:84%; left:70%;">🤗</div>
   </div>
 
-
   <!-- ===== Section 2: Input Box ===== -->
-  <div id="prompt-box"
-    class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center opacity-0 pointer-events-none z-20">
+  <div id="prompt-sec">
+    <div id="prompt-box"
+      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center opacity-0 pointer-events-none z-20">
 
-    <div class="relative w-80 mb-4">
-      <input type="text" placeholder="how was your day...🤔"
-        class="border-2 border-gray-300 rounded-lg px-4 py-3 w-full text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-12">
+      <div class="relative w-80 mb-4">
+        <input type="text" placeholder="how was your day...🤔"
+          class="border-2 border-gray-300 rounded-lg px-4 py-3 w-full text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-12">
 
-      <!-- 🎤 Microphone Icon -->
-      <button id="voice-btn" class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-indigo-600">
-        <i class="fas fa-microphone text-xl"></i>
-      </button>
-    </div>
+        <!-- 🎤 Microphone Icon -->
+        <button id="voice-btn" class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-indigo-600">
+          <i class="fas fa-microphone text-xl"></i>
+        </button>
+      </div>
 
-    <!-- 🎤 Voice Popup -->
-    <div id="voice-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-      <div class="bg-white rounded-2xl p-6 w-80 text-center shadow-xl relative">
-        <h2 class="text-lg font-semibold text-indigo-600 mb-3">🎙 Listening...</h2>
+      <!-- 🎤 Voice Popup -->
+      <div id="voice-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 w-80 text-center shadow-xl relative">
+          <h2 class="text-lg font-semibold text-indigo-600 mb-3">🎙 Listening...</h2>
 
-        <!-- Live recognized text -->
-        <div id="recognized-text"
-          class="border border-gray-300 rounded-lg p-3 h-24 overflow-y-auto text-gray-800 mb-4 text-sm">
-          Speak something...
-        </div>
+          <!-- Live recognized text -->
+          <div id="recognized-text"
+            class="border border-gray-300 rounded-lg p-3 h-24 overflow-y-auto text-gray-800 mb-4 text-sm">
+            Speak something...
+          </div>
 
-        <div class="flex justify-between mt-4">
-          <button id="restart-btn"
-            class="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-lg w-1/2 mr-2">
-            Restart
-          </button>
-          <button id="use-text-btn"
-            class="bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg w-1/2">
-            Use this text
-          </button>
+          <div class="flex justify-between mt-4">
+            <button id="restart-btn"
+              class="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-lg w-1/2 mr-2">
+              Restart
+            </button>
+            <button id="use-text-btn"
+              class="bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg w-1/2">
+              Use this text
+            </button>
+          </div>
         </div>
       </div>
+
+
+      <button id="submit-btn"
+        class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition">
+        Submit
+      </button>
     </div>
-
-
-    <button id="submit-btn"
-      class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition">
-      Submit
-    </button>
   </div>
-
-
   <!-- Result Section -->
-  <div id="result-section"
-    style="display:none; flex-direction: column; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px;">
-    <h2 id="result-text" style="font-size:1.8rem; margin-bottom:20px; line-height:1.4;"></h2>
-    <p id="suggestion-text" class="mt-3 text-lg text-gray-700 italic text-center"></p>
-    <div id="result-emoji" style="font-size:6rem; margin-bottom:20px;"></div>
+  <div id="result-section" class="hidden relative" >
+
+    <h2 id="result-text" class="text-2xl md:text-3xl font-semibold mb-4 leading-snug"></h2>
+
+    <p id="suggestion-text" class="mt-2 text-lg md:text-xl text-gray-700 max-w-xl"></p>
+
+    <div id="result-emoji" class="text-7xl md:text-8xl my-6"></div>
+
     <button id="try-again-btn"
-      style="padding:10px 25px; font-size:1.2rem; border:none; border-radius:8px; background:#4f46e5; color:#fff; cursor:pointer; transition:0.3s;">Try
-      Again</button>
+      class="px-6 py-3 text-lg md:text-xl rounded-xl bg-indigo-600 text-white cursor-pointer transition duration-300 hover:bg-indigo-700">
+      Try Again
+    </button>
+
   </div>
+  <!-- Result Section -->
+  <!-- <div id="result-section" -->
+  <!-- style="display:none; flex-direction: column; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px;"> -->
+  <!-- <h2 id="result-text" style="font-size:1.8rem; margin-bottom:20px; line-height:1.4;"></h2> -->
+  <!-- <p id="suggestion-text" class="mt-3 text-lg text-gray-700 italic text-center"></p> -->
+  <!-- <div id="result-emoji" style="font-size:6rem; margin-bottom:20px;"></div> -->
+  <!-- <button id="try-again-btn" -->
+  <!-- style="padding:10px 25px; font-size:1.2rem; border:none; border-radius:8px; background:#4f46e5; color:#fff; cursor:pointer; transition:0.3s;">Try -->
+  <!-- Again</button> -->
+  <!-- </div> -->
 
 
   <script src="script.js"></script>

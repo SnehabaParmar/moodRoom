@@ -7,16 +7,113 @@
 body {
   min-height: 100vh;
   overflow: hidden;
-  background: linear-gradient(to top, #022e64, #6193e8, #cc43db, #ce7dbd);
-  /* same as welcome section */
+  /* background: linear-gradient(to top, #022e64, #6193e8, #cc43db, #ce7dbd); */
+
+}
+
+#emoji-container {
+  z-index: 10;
+  pointer-events: none;
+  /* FIXES THE START BUTTON */
+}
+
+.emoji {
+  position: absolute;
+  z-index: 15;
+}
+
+#result-section {
+  position: relative;
+  z-index: 10;
+}
+
+.theme-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
 }
 
 
 #welcome-section {
   transition: clip-path 1s ease;
   clip-path: inset(0 0 0 0);
+  background: linear-gradient(130deg, #cf62b8, #8a2be2, #3e27bd);
+  background-size: 400% 400%;
+  animation: gradientMove 12s ease infinite;
 }
 
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.floating-shapes {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.shape {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  background: rgba(255, 255, 255, 0.114);
+  border-radius: 30%;
+  animation: floatShapes 10s infinite alternate ease-in-out;
+}
+
+/* Shape positions */
+.s1 {
+  top: 15%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.s2 {
+  top: 65%;
+  left: 20%;
+  animation-delay: -3s;
+}
+
+.s3 {
+  top: 25%;
+  right: 3%;
+  animation-delay: -6s;
+}
+
+.s4 {
+  bottom: 10%;
+  right: 15%;
+  animation-delay: -9s;
+}
+
+/* Floating animation */
+@keyframes floatShapes {
+  0% {
+    transform: translateY(0) rotate(10deg);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: translateY(-40px) rotate(50deg);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: translateY(0) rotate(10deg);
+    opacity: 0.5;
+  }
+}
 
 /* Bounce-in animation for welcome page */
 @keyframes bounceIn {
@@ -71,7 +168,6 @@ body {
   height: 100vh;
   text-align: center;
   padding: 20px;
-  background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
   color: #333;
   font-family: 'Poppins', sans-serif;
 }
@@ -153,10 +249,6 @@ body {
   }
 }
 
-Popup styling
-/* #voice-popup { */
-  /* transition: all 0.3s ease-in-out; */
-/* } */
 
 #voice-popup.active {
   display: flex;
@@ -170,4 +262,13 @@ Popup styling
 #recognized-text {
   font-family: "Poppins", sans-serif;
   white-space: pre-wrap;
+}
+
+#emoji-container {
+  z-index: 20;
+}
+
+.emoji {
+  position: absolute;
+  z-index: 30;
 }

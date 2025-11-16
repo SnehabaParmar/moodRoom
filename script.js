@@ -3,6 +3,7 @@ window.onload = () => {
   const emojis = document.querySelectorAll('#emoji-container .emoji');
   const startBtn = document.getElementById('start-btn');
   const welcomeSection = document.getElementById('welcome-section');
+  const welTxt = document.getElementById('wel-txt');
   const promptBox = document.getElementById('prompt-box');
   const submitBtn = document.getElementById('submit-btn');
   const inputField = promptBox.querySelector('input');
@@ -30,8 +31,8 @@ window.onload = () => {
 
   // 🚀 Start button
   startBtn.addEventListener('click', () => {
-    welcomeSection.style.opacity = 0;
-    welcomeSection.style.transform = 'scale(0.9)';
+    welTxt.style.opacity = 0;
+    welTxt.style.transform = 'scale(0.9)';
 
     const finalPositions = [
       { top: '8%', left: '10%' },
@@ -143,6 +144,7 @@ window.onload = () => {
       const data = await res.json();
       const emotion = data.emotion ? data.emotion.toLowerCase() : 'neutral';
 
+
       // 🌿 Fetch realistic AI suggestion
       let suggestionText = "Thinking of something nice for you...";
 
@@ -161,31 +163,43 @@ window.onload = () => {
 
       // 🧩 Show detected emotion and suggestion
       const emojiMap = {
-        joy: "😊",
-        happiness: "😄",
-        sadness: "😢",
-        anger: "😠",
+        admiration: "🤩",
+        amusement: "😮",
+        anger: "😡",
+        annoyance: "😫",
+        approval: "💯",
+        confusion: "😵‍💫",
+        caring: "😌",
+        curosity : "😶‍🌫️",
+        disgust: "🤮",
+        disappointment: "😞",
+        embarressment: "🫠",
+        excitement : "🥳",
         fear: "😨",
+        gratitude : "🙇🏻‍♀️",
+        joy: "😄",
+        pride :"😎",
+        sadness: "😢",
         love: "❤️",
         surprise: "😲",
-        disgust: "🤢",
-        disappointment: "😞",
-        neutral: "😐",
-        default: "🙂"
+        neutral: "🙂",
+        default: "😳"
       };
 
       // ✅ Clear previous results first
       resultText.innerHTML = `
       <p>Your text: "${moodText}"</p>
-      <p>Detected mood: <strong>${emotion.toUpperCase()}</strong></p>
+      <p>Detected mood: <strong>${emotion}</strong></p>
       <p style="margin-top: 10px; font-style: italic; color: #6b7280;">
         ${suggestionText}
       </p>
     `;
 
       resultEmoji.innerText = emojiMap[emotion] || emojiMap.default;
+      applyTheme(emotion);
 
       promptBox.style.display = 'none';
+      welcomeSection.style.display='none';
       resultSection.style.display = 'flex';
       resultSection.style.opacity = 0;
       resultSection.style.transform = 'translateY(30px)';
@@ -203,96 +217,71 @@ window.onload = () => {
       submitBtn.innerText = 'Submit';
     }
   });
-// 
-  // submitBtn.addEventListener('click', async () => {
-    // const moodText = inputField.value.trim();
-    // if (!moodText) {
-      // alert('Please enter or speak something first!');
-      // return;
-    // }
-// 
-    // submitBtn.disabled = true;
-    // submitBtn.innerText = 'Analyzing...';
-// 
-    // try {
-      // const res = await fetch('http://localhost:5000/detect-emotion', {
-        // method: 'POST',
-        // headers: { 'Content-Type': 'application/json' },
-        // body: JSON.stringify({ text: moodText })
-      // });
-// 
-      // const data = await res.json();
-      // const emotion = data.emotion ? data.emotion.toLowerCase() : 'neutral';
-// 
-      
-      // let suggestionText = "Thinking of something nice for you...";
-// 
-      // try {
-        // const suggestionRes = await fetch('http://localhost:5000/get-suggestion', {
-          // method: 'POST',
-          // headers: { 'Content-Type': 'application/json' },
-          // body: JSON.stringify({ text: moodText, emotion })
-        // });
-        // const suggestionData = await suggestionRes.json();
-        // suggestionText = suggestionData.suggestion || "Keep smiling — you're doing great 🌼";
-      // } catch (err) {
-        // console.error("Suggestion fetch failed:", err);
-        // suggestionText = "Keep smiling — you're doing great 🌼";
-      // }
-// 
-      
-      // const suggestionPara = document.createElement('p');
-      // suggestionPara.style.marginTop = "10px";
-      // suggestionPara.style.fontStyle = "italic";
-      // suggestionPara.style.color = "#6b7280";
-      // suggestionPara.innerText = suggestionText;
-      // resultText.appendChild(suggestionPara);
-// 
-      // const emojiMap = {
-        // joy: "😊",
-        // happiness: "😄",
-        // sadness: "😢",
-        // anger: "😠",
-        // fear: "😨",
-        // love: "❤️",
-        // surprise: "😲",
-        // disgust: "🤢",
-        // disappointment: "😞",
-        // neutral: "😐",
-        // default: "🙂"
-      // };
-// 
-      // resultText.innerText = `Your text: "${moodText}"\nDetected mood: ${emotion.toUpperCase()}`;
-      // resultEmoji.innerText = emojiMap[emotion] || emojiMap.default;
-// 
-      // promptBox.style.display = 'none';
-      // resultSection.style.display = 'flex';
-      // resultSection.style.opacity = 0;
-      // resultSection.style.transform = 'translateY(30px)';
-      // resultSection.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-      // setTimeout(() => {
-        // resultSection.style.opacity = 1;
-        // resultSection.style.transform = 'translateY(0)';
-      // }, 50);
-// 
-    // } catch (err) {
-      // console.error('Emotion detection failed:', err);
-      // alert('Error detecting emotion. Please try again.');
-    // } finally {
-      // submitBtn.disabled = false;
-      // submitBtn.innerText = 'Submit';
-    // }
-  // });
-// 
+
   // 🔁 Try again
   tryAgainBtn.addEventListener('click', () => {
+    document.querySelectorAll(".theme-bg").forEach(el => el.remove());
+    // Show emojis back
+    document.getElementById("emoji-container").classList.remove("hidden")
     resultSection.style.opacity = 0;
     resultSection.style.transform = 'translateY(30px)';
     setTimeout(() => {
       resultSection.style.display = 'none';
       promptBox.style.display = 'flex';
+      welcomeSection.style.display = 'block';
       inputField.value = '';
       inputField.focus();
     }, 400);
   });
 };
+
+function applyTheme(emotion) {
+  const resultSection = document.getElementById("result-section");
+
+  const themes = {
+    admiration : "theme/admiration.html",
+    joy: "theme/happy.html",
+    sadness: "theme/sad.html",
+    anger: "theme/anger.html",
+    love:"theme/love.html",
+    calm: "theme/calm.html",
+    relif:"theme/calm.html",
+    surprise:"theme/surprise.html",
+    excitement : "theme/exited.html",
+    fear: "theme/fear.html",
+    neutral: "theme/neutral.html"
+  };
+
+  const file = themes[emotion] || themes.neutral;
+
+  // Hide emojis
+  document.getElementById("emoji-container").classList.add("hidden");
+
+  // Remove old theme if exists
+  document.querySelectorAll(".theme-bg").forEach(el => el.remove());
+
+  fetch(file)
+    .then(res => res.text())
+    .then(html => {
+
+      // Insert theme wrapper behind the result content
+      const wrapper = document.createElement("div");
+      wrapper.className = "absolute inset-0 theme-bg -z-10 pointer-events-none";
+      wrapper.innerHTML = html;
+      document.body.appendChild(wrapper);
+
+      // Run <script> from the theme file
+      const scripts = wrapper.querySelectorAll("script");
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement("script");
+        newScript.textContent = oldScript.textContent;
+        document.body.appendChild(newScript);
+      });
+
+      // Call theme initializer function if exists
+      if (typeof startTheme === "function") {
+        startTheme();
+      }
+    })
+    .catch(err => console.error("Theme load error:", err));
+}

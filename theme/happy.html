@@ -1,183 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Happy Mood Theme with Bubbles</title>
-
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:"Poppins", sans-serif;
-}
-
-/* Animated Gradient BG */
-body {
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1950&q=80") no-repeat center/cover;
-  position: relative;
-}
-
-
-@keyframes happyBG {
-  0% {background-position: 0% 50%;}
-  50% {background-position: 100% 50%;}
-  100% {background-position: 0% 50%;}
-}
-
-/* Floating emojis */
-.emoji {
-  font-size: 40px;
-  position: absolute;
-  animation: float 4s infinite ease-in-out;
-  opacity: 0.7 ;
-}
-
-@keyframes float {
-  0% {transform: translateY(0px);}
-  50% {transform: translateY(-30px);}
-  100% {transform: translateY(0px);}
-}
-
-
-/* .mood-emoji {
-  font-size: 75px;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-.mood-text {
-  font-size: 32px;
-  text-shadow: 2px 3px 3px rgba(0, 0, 0, 0.619);
-  font-weight: 600;
-  color: #000000;
-} */
-
-/* ✨ Floating Bubbles */
-.bubble {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.158);
-  backdrop-filter: blur(6px);
-  animation: bubbleFloat 6s infinite ease-in-out;
-  pointer-events: none;
-  opacity: 0.50;
-  /* box-shadow: rgb(0, 0, 0); */
-  /* filter: blur(3rem); */
-}
-
-@keyframes bubbleFloat {
-  0% {transform: translateY(0) scale(1);}
-  50% {transform: translateY(-50px) scale(1.15);}
-  100% {transform: translateY(0) scale(1);}
-}
-
-
-/* 🌈 Responsive Design — Works for all Emotion Themes */
-
-/* Tablets and smaller laptops */
-@media (max-width: 1024px) {
-  h1 {
-    font-size: 2.2rem;
-    margin-top: 2rem;
-  }
-  .center-glow {
-    width: 300px;
-    height: 300px;
-  }
-  .bubble {
-    font-size: 1.4rem;
-  }
-}
-
-/* Mobile devices */
-@media (max-width: 768px) {
-  body {
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
+  body.theme-active {
+    background: linear-gradient(120deg, #e0a370, #99e0ea, #fed7aa);
+    background-size: 200% 200%;
+    animation: joyMove 9s ease-in-out infinite;
   }
 
-  h1 {
-    font-size: 1.6rem;
-    padding: 0 10px;
-    line-height: 1.3;
-    text-align: center;
+  @keyframes joyMove {
+    0% {
+      background-position: 0% 50%
+    }
+
+    50% {
+      background-position: 100% 50%
+    }
+
+    100% {
+      background-position: 0% 50%
+    }
   }
 
-  .center-glow {
-    width: 200px;
-    height: 200px;
-    filter: blur(40px);
+  .confetti {
+    position: fixed;
+    bottom: 100%;
+    width: 8px;
+    height: 12px;
+    opacity: 0.95;
+    border-radius: 2px;
+    transform: rotate(10deg);
+    animation: confettiFall 4s linear forwards
   }
 
-  .bubble {
-    font-size: 1.2rem;
-    animation-duration: 5s !important;
+  @keyframes confettiFall {
+    0% {
+      transform: translateY(0) rotate(0)
+    }
+
+    100% {
+      transform: translateY(120vh) rotate(600deg);
+      opacity: 0
+    }
   }
 
-  .spark {
-    width: 3px;
-    height: 3px;
+  .glow {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(10px);
+    opacity: .7;
   }
-
-  .firework {
-    width: 3px;
-    height: 3px;
-  }
-}
-
-/* Small phones */
-@media (max-width: 480px) {
-  h1 {
-    font-size: 1.2rem;
-  }
-
-  .center-glow {
-    width: 150px;
-    height: 150px;
-  }
-
-  .bubble {
-    font-size: 1rem;
-  }
-}
-
 </style>
-</head>
-
-<body>
-
-<!-- Floating Happy Emojis -->
-<div class="emoji" style="top:10%; left:5%;">😄</div>
-<div class="emoji" style="top:25%; right:8%; animation-delay:0.5s;">✨</div>
-<div class="emoji" style="bottom:20%; left:18%; animation-delay:1s;">🌈</div>
-<div class="emoji" style="top:25%; right:35%; animation-delay:1.4s;">💛</div>
-<div class="emoji" style="bottom:18%; right:5%; animation-delay:2s;">☀️</div>
-
-<!-- Soft Glowing Bubbles -->
-<div class="bubble" style="width:60px;height:60px; top:80%; left:10%; animation-delay:0s;"></div>
-<div class="bubble" style="width:45px;height:45px; top:30%; left:50%; animation-delay:1s;"></div>
-<div class="bubble" style="width:80px;height:80px; top:60%; left:70%; animation-delay:1.8s;"></div>
-<div class="bubble" style="width:30px;height:30px; top:40%; left:20%; animation-delay:2.3s;"></div>
-<div class="bubble" style="width:55px;height:55px; top:90%; left:80%; animation-delay:3s;"></div>
-
-<!-- Mood Card -->
-<!-- <div class="mood-box">
-  <div class="mood-emoji">😄</div><br>
-  <div class="mood-text">You're feeling Happy!</div>
-</div> -->
 
 
+<div id="theme-animation-container"></div>
+
+
+<script>
+  function startTheme() {
+    document.body.classList.add('theme-active');
+    window.__themeIntervals = window.__themeIntervals || [];
+
+
+    function createConfetti() { const el = document.createElement('div'); el.className = 'confetti'; el.style.left = Math.random() * 100 + 'vw'; el.style.background = ['#ff7b7b', '#ffd166', '#9ad3bc', '#ffd5e5'][Math.floor(Math.random() * 4)]; el.style.animationDuration = (3 + Math.random() * 2) + 's'; document.body.appendChild(el); setTimeout(() => el.remove(), 4500); }
+    function createGlow() { const el = document.createElement('div'); el.className = 'glow'; const size = Math.random() * 120 + 80; el.style.width = el.style.height = size + 'px'; el.style.left = Math.random() * 100 + 'vw'; el.style.top = Math.random() * 100 + 'vh'; el.style.background = 'radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0.05))'; el.style.opacity = 0.6; document.body.appendChild(el); setTimeout(() => el.remove(), 7000); }
+
+
+    window.__themeIntervals.push(setInterval(createConfetti, 250));
+    window.__themeIntervals.push(setInterval(createGlow, 1200));
+  }
+  function stopTheme() { if (window.__themeIntervals) { window.__themeIntervals.forEach(i => clearInterval(i)); window.__themeIntervals = []; } document.body.classList.remove('theme-active'); }
 </script>
-
-
-</body>
-</html>
