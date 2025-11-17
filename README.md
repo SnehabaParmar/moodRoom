@@ -11,6 +11,7 @@ It aims to create a calm, expressive, and personalized space that evolves with y
 - 🎤 **Voice Input (Speech-to-Text):** Users can speak instead of typing.
 - 🎨 **Dynamic Themes:** The background, colors, and animations change based on the detected emotion.
 - 👾 **Mini-Games & Relaxation Activities:** Provides quick games and meditation options to improve mood.
+- 💬 **Chatbot Companion:** Offers personalized replies or suggestions according to your current mood.
   
 ---
 
@@ -22,6 +23,7 @@ It aims to create a calm, expressive, and personalized space that evolves with y
 | **Backend** | Flask (Python) |
 | **AI / NLP** | Emotion detection via Hugging Face model |
 | **Voice Input** | Speech-to-text using Vosk or other free API |
+| **chatbot** | AI chatbot using openai api |
 
 ---
 
