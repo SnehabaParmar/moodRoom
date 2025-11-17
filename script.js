@@ -1,5 +1,5 @@
-
 window.onload = () => {
+  // -------------------- Elements --------------------
   const emojis = document.querySelectorAll('#emoji-container .emoji');
   const startBtn = document.getElementById('start-btn');
   const welcomeSection = document.getElementById('welcome-section');
@@ -19,9 +19,19 @@ window.onload = () => {
   const resultEmoji = document.getElementById('result-emoji');
   const tryAgainBtn = document.getElementById('try-again-btn');
 
+  // Chat Elements
+  const chatSection = document.getElementById('chat-section');
+  const chatIcon = document.getElementById('chat-icon');
+  const chatBackBtn = document.getElementById('chat-back-btn');
+  const chatHomeBtn = document.getElementById('chat-home-btn');
+
+  const chatMessages = document.getElementById('chat-messages');
+  const chatInput = document.getElementById('chat-input');
+  const chatSend = document.getElementById('chat-send');
+
   let mediaRecorder, audioChunks = [];
 
-  // 🎞️ Animate emojis on load
+  // -------------------- Emoji Animation --------------------
   emojis.forEach((emoji, i) => {
     setTimeout(() => {
       emoji.style.opacity = 1;
@@ -29,24 +39,16 @@ window.onload = () => {
     }, i * 300);
   });
 
-  // 🚀 Start button
+  // -------------------- Start Button --------------------
   startBtn.addEventListener('click', () => {
     welTxt.style.opacity = 0;
     welTxt.style.transform = 'scale(0.9)';
 
     const finalPositions = [
-      { top: '8%', left: '10%' },
-      { top: '12%', left: '45%' },
-      { top: '10%', left: '80%' },
-      { top: '28%', left: '70%' },
-      { top: '40%', left: '5%' },
-      { top: '60%', left: '25%' },
-      { top: '45%', left: '85%' },
-      { top: '62%', left: '75%' },
-      { top: '75%', left: '50%' },
-      { top: '80%', left: '15%' },
-      { top: '85%', left: '85%' },
-      { top: '25%', left: '26%' }
+      { top: '8%', left: '10%' }, { top: '12%', left: '45%' }, { top: '10%', left: '80%' },
+      { top: '28%', left: '70%' }, { top: '40%', left: '5%' }, { top: '60%', left: '25%' },
+      { top: '45%', left: '85%' }, { top: '62%', left: '75%' }, { top: '75%', left: '50%' },
+      { top: '80%', left: '15%' }, { top: '85%', left: '85%' }, { top: '25%', left: '26%' }
     ];
 
     emojis.forEach((emoji, i) => {
@@ -63,7 +65,7 @@ window.onload = () => {
     }, 1200);
   });
 
-  // 🎤 Voice recording (with SpeechRecognition-compatible format)
+  // -------------------- Voice Input --------------------
   voiceBtn.addEventListener('click', async () => {
     voicePopup.classList.remove('hidden');
     recognizedText.innerText = "Listening... 🎙️";
@@ -76,7 +78,7 @@ window.onload = () => {
       mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
       mediaRecorder.onstop = async () => {
         recognizedText.innerText = "Processing voice...";
-        const blob = new Blob(audioChunks, { type: 'audio/wav' }); // 👈 changed to wav
+        const blob = new Blob(audioChunks, { type: 'audio/wav' });
         const formData = new FormData();
         formData.append("file", blob, "speech.wav");
 
@@ -86,11 +88,8 @@ window.onload = () => {
             body: formData,
           });
           const data = await res.json();
-          if (data.text) {
-            recognizedText.innerText = data.text;
-          } else {
-            recognizedText.innerText = "Could not recognize speech 😞";
-          }
+          if (data.text) recognizedText.innerText = data.text;
+          else recognizedText.innerText = "Could not recognize speech 😞";
         } catch (err) {
           recognizedText.innerText = "Error processing audio!";
           console.error(err);
@@ -101,29 +100,25 @@ window.onload = () => {
       setTimeout(() => {
         mediaRecorder.stop();
         stream.getTracks().forEach((t) => t.stop());
-      }, 8000); // ⏱️ increased to 8s
+      }, 8000);
     } catch (err) {
       alert("Microphone access denied or not available!");
       console.error(err);
     }
   });
 
-  // 🔁 Restart
   restartBtn.addEventListener('click', () => {
     voicePopup.classList.add('hidden');
     voiceBtn.click();
   });
 
-  // ✅ Use recognized text
   useTextBtn.addEventListener('click', () => {
     const text = recognizedText.innerText.trim();
-    if (text && !text.startsWith("Could not")) {
-      inputField.value = text;
-    }
+    if (text && !text.startsWith("Could not")) inputField.value = text;
     voicePopup.classList.add('hidden');
   });
 
-  // 💬 Submit → emotion detection
+  // -------------------- Mood Detection & Result --------------------
   submitBtn.addEventListener('click', async () => {
     const moodText = inputField.value.trim();
     if (!moodText) {
@@ -140,14 +135,10 @@ window.onload = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: moodText })
       });
-
       const data = await res.json();
       const emotion = data.emotion ? data.emotion.toLowerCase() : 'neutral';
 
-
-      // 🌿 Fetch realistic AI suggestion
       let suggestionText = "Thinking of something nice for you...";
-
       try {
         const suggestionRes = await fetch('http://localhost:5000/get-suggestion', {
           method: 'POST',
@@ -157,50 +148,31 @@ window.onload = () => {
         const suggestionData = await suggestionRes.json();
         suggestionText = suggestionData.suggestion || "Keep smiling — you're doing great 🌼";
       } catch (err) {
-        console.error("Suggestion fetch failed:", err);
         suggestionText = "Keep smiling — you're doing great 🌼";
       }
 
-      // 🧩 Show detected emotion and suggestion
       const emojiMap = {
-        admiration: "🤩",
-        amusement: "😮",
-        anger: "😡",
-        annoyance: "😫",
-        approval: "💯",
-        confusion: "😵‍💫",
-        caring: "😌",
-        curosity : "😶‍🌫️",
-        disgust: "🤮",
-        disappointment: "😞",
-        embarressment: "🫠",
-        excitement : "🥳",
-        fear: "😨",
-        gratitude : "🙇🏻‍♀️",
-        joy: "😄",
-        pride :"😎",
-        sadness: "😢",
-        love: "❤️",
-        surprise: "😲",
-        neutral: "🙂",
-        default: "😳"
+        admiration: "🤩", amusement: "😮", anger: "😡", annoyance: "😫",
+        approval: "💯", confusion: "😵‍💫", caring: "😌", curosity: "😶‍🌫️",
+        disgust: "🤮", disappointment: "😞", embarressment: "🫠", excitement: "🥳",
+        fear: "😨", gratitude: "🙇🏻‍♀️", joy: "😄", pride: "😎", sadness: "😢",
+        love: "❤️", surprise: "😲", neutral: "🙂", default: "😳"
       };
 
-      // ✅ Clear previous results first
       resultText.innerHTML = `
-      <p>Your text: "${moodText}"</p>
-      <p>Detected mood: <strong>${emotion}</strong></p>
-      <p style="margin-top: 10px; font-style: italic; color: #6b7280;">
-        ${suggestionText}
-      </p>
-    `;
-
+        <p>Your text: "${moodText}"</p>
+        <p>Detected mood: <strong>${emotion}</strong></p>
+        <p style="margin-top:10px; font-style: italic; color:#6b7280;">${suggestionText}</p>
+      `;
       resultEmoji.innerText = emojiMap[emotion] || emojiMap.default;
+
       applyTheme(emotion);
 
       promptBox.style.display = 'none';
-      welcomeSection.style.display='none';
+      welcomeSection.style.display = 'none';
       resultSection.style.display = 'flex';
+      chatIcon.style.display = 'block';
+
       resultSection.style.opacity = 0;
       resultSection.style.transform = 'translateY(30px)';
       resultSection.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
@@ -218,72 +190,125 @@ window.onload = () => {
     }
   });
 
-  // 🔁 Try again
+  // -------------------- Try Again --------------------
   tryAgainBtn.addEventListener('click', () => {
     document.querySelectorAll(".theme-bg").forEach(el => el.remove());
-    // Show emojis back
-    document.getElementById("emoji-container").classList.remove("hidden")
+    document.getElementById("emoji-container").classList.remove("hidden");
+
     resultSection.style.opacity = 0;
     resultSection.style.transform = 'translateY(30px)';
     setTimeout(() => {
       resultSection.style.display = 'none';
+      chatIcon.style.display = 'none';
       promptBox.style.display = 'flex';
       welcomeSection.style.display = 'block';
       inputField.value = '';
       inputField.focus();
     }, 400);
   });
-};
 
-function applyTheme(emotion) {
-  const resultSection = document.getElementById("result-section");
+  // -------------------- Chat Toggles --------------------
+  function openChat() {
+    resultSection.style.display = 'none';
+    chatSection.style.display = 'flex';
+    chatIcon.style.display = 'none';
+  }
 
-  const themes = {
-    admiration : "theme/admiration.html",
-    annoyance : "theme/anger.html",
-    curiosity : "theme/curious.html",
-    joy: "theme/happy.html",
-    sadness: "theme/sad.html",
-    anger: "theme/anger.html",
-    love:"theme/love.html",
-    calm: "theme/calm.html",
-    relif:"theme/calm.html",
-    surprise:"theme/surprise.html",
-    excitement : "theme/exited.html",
-    fear: "theme/fear.html",
-    neutral: "theme/neutral.html"
-  };
+  function backToResult() {
+    chatSection.style.display = 'none';
+    resultSection.style.display = 'flex';
+    chatIcon.style.display = 'block';
+  }
 
-  const file = themes[emotion] || themes.neutral;
+  chatIcon.addEventListener('click', openChat);
+  chatBackBtn.addEventListener('click', backToResult);
+  chatHomeBtn.addEventListener('click', () => location.reload());
 
-  // Hide emojis
-  document.getElementById("emoji-container").classList.add("hidden");
+  // -------------------- Theme Loader --------------------
+  function applyTheme(emotion) {
+    const themes = {
+      admiration: "theme/admiration.html", annoyance: "theme/anger.html",
+      curiosity: "theme/curious.html", joy: "theme/happy.html", sadness: "theme/sad.html",
+      anger: "theme/anger.html", love: "theme/love.html", calm: "theme/calm.html",
+      relif: "theme/calm.html", surprise: "theme/surprise.html", excitement: "theme/exited.html",
+      fear: "theme/fear.html", neutral: "theme/neutral.html"
+    };
 
-  // Remove old theme if exists
-  document.querySelectorAll(".theme-bg").forEach(el => el.remove());
+    const file = themes[emotion] || themes.neutral;
+    document.getElementById("emoji-container").classList.add("hidden");
+    document.querySelectorAll(".theme-bg").forEach(el => el.remove());
 
-  fetch(file)
-    .then(res => res.text())
-    .then(html => {
+    fetch(file)
+      .then(res => res.text())
+      .then(html => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "absolute inset-0 theme-bg -z-10 pointer-events-none";
+        wrapper.innerHTML = html;
+        document.body.appendChild(wrapper);
 
-      // Insert theme wrapper behind the result content
-      const wrapper = document.createElement("div");
-      wrapper.className = "absolute inset-0 theme-bg -z-10 pointer-events-none";
-      wrapper.innerHTML = html;
-      document.body.appendChild(wrapper);
+        wrapper.querySelectorAll("script").forEach(oldScript => {
+          const newScript = document.createElement("script");
+          newScript.textContent = oldScript.textContent;
+          document.body.appendChild(newScript);
+        });
 
-      // Run <script> from the theme file
-      const scripts = wrapper.querySelectorAll("script");
-      scripts.forEach(oldScript => {
-        const newScript = document.createElement("script");
-        newScript.textContent = oldScript.textContent;
-        document.body.appendChild(newScript);
+        if (typeof startTheme === "function") startTheme();
+      })
+      .catch(err => console.error("Theme load error:", err));
+  }
+
+  // -------------------- CHAT SYSTEM WITH OPENAI BACKEND --------------------
+
+  // Add message (user → right, AI → left)
+  function addMessage(sender, text) {
+    const msg = document.createElement("div");
+    msg.classList.add("w-full", "my-2", "flex");
+
+    if (sender === "user") {
+      msg.classList.add("justify-end");
+      msg.innerHTML = `
+        <div class="max-w-[70%] bg-indigo-500 text-white px-4 py-2 rounded-xl rounded-br-none">
+          ${text}
+        </div>`;
+    } else {
+      msg.classList.add("justify-start");
+      msg.innerHTML = `
+        <div class="max-w-[70%] bg-black/20 backdrop-blur-md text-white px-4 py-2 rounded-xl rounded-bl-none">
+          ${text}
+        </div>`;
+    }
+
+    chatMessages.appendChild(msg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // Send message to Flask backend
+  chatSend.addEventListener("click", async () => {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    addMessage("user", message);
+    chatInput.value = "";
+
+    try {
+      const res = await fetch("http://localhost:5000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
       });
 
-      // Call theme initializer function if exists
-      if (typeof startTheme === "function") {
-        startTheme();
-      }
-    })
-    .catch(err => console.error("Theme load error:", err));
-}
+      const data = await res.json();
+      addMessage("ai", data.reply || "No response");
+    } catch (err) {
+      console.error(err);
+      addMessage("ai", "⚠️ Error connecting to AI server.");
+    }
+  });
+
+  const gamesBtn = document.getElementById("games-floating-btn");
+
+  gamesBtn.addEventListener("click", () => {
+    window.location.href = "games.html  "; // change to your actual games page
+  });
+
+};

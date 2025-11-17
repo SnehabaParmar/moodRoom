@@ -1,206 +1,535 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Soothing Image Puzzle</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Soothing Image Puzzle — MoodPlay</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    :root {
+      --grid-large: 360px;
+      --grid-small: 280px;
+    }
+
     body {
-      background: linear-gradient(135deg, #dbeafe, #f0fdf4);
+      min-height: 100vh;
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(135deg, #dbeafe 0%, #f0fdf4 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+    }
+
+    header.app-header {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 48px);
+      max-width: 980px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+      z-index: 30;
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.9);
+      color: #0f172a;
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(2, 6, 23, 0.06);
+      cursor: pointer;
+    }
+
+    .game-area {
+      width: 100%;
+      max-width: 980px;
+      margin-top: 86px;
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 28px;
+      align-items: start;
+      padding: 28px;
+    }
+
+    @media (max-width: 920px) {
+      .game-area {
+        grid-template-columns: 1fr;
+        padding: 18px;
+      }
+
+      header.app-header {
+        width: calc(100% - 36px);
+      }
+
+      .side-panel {
+        order: 2;
+        width: 100%;
+      }
+
+      .puzzle-panel {
+        order: 1;
+      }
+    }
+
+    .puzzle-panel {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
-      font-family: "Poppins", sans-serif;
-      overflow: hidden;
+      gap: 14px;
     }
-    #puzzle-wrapper {
-      width: 300px;
-      height: 300px;  /* ⬅️ reserve space to avoid layout jump */
+
+    .grid-wrapper {
+      width: var(--grid-large);
+      height: var(--grid-large);
       position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
-    #puzzle-container {
-      position: absolute;
-      display: grid;
-      grid-template-columns: repeat(3, 100px);
-      grid-template-rows: repeat(3, 100px);
-      gap: 2px;
-    }
-    .tile {
-      width: 100px;
-      height: 100px;
-      background-size: 300px 300px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-    .tile:hover {
-      transform: scale(1.05);
-    }
-    #message {
-      font-size: 1.2rem;
-      margin-top: 15px;
-      color: #2563eb;
-      font-weight: 600;
-    }
-    #hint {
-      margin-top: 10px;
-      background: #86efac;
-      color: #065f46;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.3s;
-    }
-    #hint:hover {
-      background: #4ade80;
-    }
-    #preview {
-      width: 300px;
-      height: 300px;
-      border-radius: 10px;
-      display: none;
+
+    .preview-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
       object-fit: cover;
       position: absolute;
       top: 0;
       left: 0;
+      display: none;
+      box-shadow: 0 10px 30px rgba(2, 6, 23, 0.06);
+      z-index: 10;
+    }
+
+    .puzzle-grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 6px;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      z-index: 5;
+    }
+
+    .tile {
+      background-size: var(--grid-large) var(--grid-large);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 220ms cubic-bezier(.2, .9, .3, 1), box-shadow 220ms;
+      box-shadow: 0 6px 20px rgba(2, 6, 23, 0.04);
+      width: 100%;
+      height: 100%;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tile.selected {
+      outline: 3px solid rgba(124, 58, 237, 0.22);
+      transform: scale(1.02);
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+      align-items: center;
+    }
+
+    .btn {
+      background: linear-gradient(90deg, #7c3aed, #ec4899);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.12);
+    }
+
+    .side-panel {
+      min-height: 360px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      justify-content: flex-start;
+      align-items: stretch;
+      border: 1px solid rgba(15, 23, 42, 0.04);
+    }
+
+    @media (max-width: 540px) {
+      .grid-wrapper {
+        width: var(--grid-small);
+        height: var(--grid-small);
+      }
+
+      .tile {
+        background-size: var(--grid-small) var(--grid-small);
+      }
+
+      .puzzle-grid {
+        gap: 4px;
+      }
     }
   </style>
 </head>
+
 <body>
 
-  <h1 class="text-2xl font-semibold text-blue-700">🧩 Soothing Image Puzzle</h1>
-  <div id="puzzle-wrapper">
-    <div id="puzzle-container"></div>
-    <img id="preview" alt="Preview Image">
+  <header class="app-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <button class="back-btn" id="backBtn" title="Back">←</button>
+      <div>
+        <div style="font-weight:700; font-size:16px; color:#0f172a;">Soothing Image Puzzle</div>
+        <div style="font-size:12px; color:rgba(15,23,42,0.6)">Calm challenge • rearrange the pieces</div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:12px; align-items:center;">
+      <div style="display:flex;flex-direction:column;align-items:flex-end;">
+        <div
+          style="background: linear-gradient(90deg, rgba(124,58,237,0.12), rgba(236,72,153,0.08)); border-radius:999px; padding:6px 10px; font-weight:600; font-size:14px; color:#111827; min-width:86px; text-align:center;"
+          id="timer">00:00.00</div>
+        <div style="font-size:13px; color:#111827; opacity:0.85; margin-top:6px;" id="bestTime">Best: —</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="game-area" role="main">
+    <section class="puzzle-panel" aria-label="Puzzle panel">
+      <div class="grid-wrapper" id="gridWrapper" aria-hidden="false">
+        <img id="preview" class="preview-img" alt="preview" />
+        <div id="puzzleGrid" class="puzzle-grid"></div>
+      </div>
+
+      <div class="controls">
+        <button id="hintBtn" class="btn secondary">Hint</button>
+      </div>
+
+      <div id="message" style="min-height:26px; margin-top:6px; font-weight:600; color:#065f46;"></div>
+    </section>
+
+    <aside class="side-panel" aria-label="Info panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:13px;color:#374151;">Difficulty</div>
+          <select id="difficulty" class="mt-2 px-3 py-2 rounded-md bg-white/80">
+            <option value="3">3 × 3 (Easy)</option>
+            <option value="4">4 × 4 (Medium)</option>
+            <option value="5">5 × 5 (Hard)</option>
+          </select>
+        </div>
+
+        <div style="text-align:right;">
+          <div style="font-size:13px;color:#374151;">Moves</div>
+          <div id="moves" style="font-weight:700;color:#0f172a;">0</div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;gap:10px;">
+        <div>
+          <div style="font-size:13px;color:#374151;">Status</div>
+          <div id="status" style="font-weight:700;color:#0f172a;">Waiting</div>
+        </div>
+
+        <div>
+          <div style="font-size:13px;color:#374151;">Time</div>
+          <div id="timeSmall" style="font-weight:700;color:#0f172a;">00:00</div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div>
+        <h4 style="font-weight:700; margin-bottom:6px;">How to play</h4>
+        <p style="font-size:13px; color:#374151; margin:0;">
+          Tap two tiles to swap them. Recreate the image. Preview shows for 3 seconds before start.
+        </p>
+      </div>
+
+      <div style="margin-top:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div>
+            <div style="font-size:13px;color:#374151;">XP</div>
+            <div id="xp" style="font-weight:700;color:#0f172a;">0</div>
+          </div>
+        </div>
+
+        <button id="hintSmall" class="btn" style="width:100%;">💡 Hint</button>
+      </div>
+    </aside>
   </div>
-  <div id="message"></div>
-  <button id="hint">💡 Hint</button>
 
   <script>
-    const puzzle = document.getElementById("puzzle-container");
-    const wrapper = document.getElementById("puzzle-wrapper");
-    const previewImg = document.getElementById("preview");
-    const message = document.getElementById("message");
-    const hintButton = document.getElementById("hint");
+    let SIZE = 3;
+    const PREVIEW_MS = 3000;
+    const STORAGE_KEY = 'moodplay_puzzle_best_time';
+    const XP_KEY = 'moodplay_puzzle_xp';
 
-    const size = 3;
-    const totalTiles = size * size;
+    const previewImg = document.getElementById('preview');
+    const puzzleGrid = document.getElementById('puzzleGrid');
+    const gridWrapper = document.getElementById('gridWrapper');
+    const hintBtn = document.getElementById('hintBtn');
+
+    const difficultySelect = document.getElementById('difficulty');
+    const movesEl = document.getElementById('moves');
+    const statusEl = document.getElementById('status');
+    const timerEl = document.getElementById('timer');
+    const timeSmallEl = document.getElementById('timeSmall');
+    const bestTimeEl = document.getElementById('bestTime');
+    const messageEl = document.getElementById('message');
+    const hintSmall = document.getElementById('hintSmall');
+    const backBtn = document.getElementById('backBtn');
+    const xpEl = document.getElementById('xp');
+
     let tiles = [];
-    let selectedTiles = [];
-    let imageUrl = "";
+    let selected = [];
+    let imageUrl = '';
+    let started = false;
+    let startTs = 0;
+    let elapsed = 0;
+    let timerInterval = null;
+    let moves = 0;
+    let xp = Number(localStorage.getItem(XP_KEY)) || 0;
+    xpEl.textContent = xp;
+    let level = 1;
 
-    // Load random soothing image
+    function computeGridPx() {
+      return window.innerWidth < 540 ? 280 : 360;
+    }
+
+    function formatTime(ms) {
+      if (ms == null) return '—';
+      const total = Math.floor(ms);
+      const cs = Math.floor((total % 1000) / 10);
+      const sec = Math.floor((total / 1000) % 60);
+      const min = Math.floor(total / 60000);
+      return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+    }
+
+    function loadBestTime() {
+      const b = localStorage.getItem(`${STORAGE_KEY}-${SIZE}`);
+      bestTimeEl.textContent = b ? 'Best: ' + formatTime(Number(b)) : 'Best: —';
+    }
+
+    function saveBestTime(ms) {
+      const key = `${STORAGE_KEY}-${SIZE}`;
+      const prev = localStorage.getItem(key);
+      if (!prev || ms < Number(prev)) {
+        localStorage.setItem(key, String(ms));
+        bestTimeEl.textContent = 'Best: ' + formatTime(ms);
+        return true;
+      }
+      return false;
+    }
+
+    function startTimer() {
+      if (started) return;
+      started = true;
+      startTs = performance.now() - elapsed;
+      timerInterval = setInterval(() => {
+        elapsed = performance.now() - startTs;
+        timerEl.textContent = formatTime(elapsed);
+        timeSmallEl.textContent = formatTime(elapsed);
+      }, 50);
+      statusEl.textContent = 'Playing';
+    }
+
+    function stopTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      started = false;
+      statusEl.textContent = 'Paused';
+    }
+
+    function resetTimer() {
+      stopTimer();
+      elapsed = 0;
+      timerEl.textContent = formatTime(0);
+      timeSmallEl.textContent = formatTime(0);
+    }
+
     function loadRandomImage() {
-      imageUrl = `https://picsum.photos/300?random=${Math.floor(Math.random() * 1000)}`;
-      previewImg.src = imageUrl;
-      previewImg.style.display = "none";
+      const gridPx = computeGridPx();
+      document.documentElement.style.setProperty('--grid-large', gridPx + 'px');
+      document.documentElement.style.setProperty('--grid-small', gridPx + 'px');
 
       previewImg.onload = () => {
-        showPreview();
+        setTimeout(() => {
+          previewImg.style.display = 'none';
+          initPuzzle();
+        }, PREVIEW_MS);
       };
+
+      previewImg.onerror = () => {
+        loadRandomImage();
+      };
+
+      imageUrl = `https://picsum.photos/${gridPx}?random=${Date.now()}`;
+      previewImg.src = imageUrl;
+      previewImg.style.display = 'block';
+      puzzleGrid.style.display = 'none';
+      messageEl.textContent = 'Previewing...';
+      statusEl.textContent = 'Preview';
+      resetTimer();
+      moves = 0;
+      movesEl.textContent = moves;
     }
 
-    // Show preview for 3 seconds
-    function showPreview() {
-      puzzle.innerHTML = "";
-      previewImg.style.display = "block";
-      setTimeout(() => {
-        previewImg.style.display = "none";
-        initPuzzle();
-      }, 3000);
-    }
-
-    // Initialize puzzle grid
     function initPuzzle() {
-      puzzle.innerHTML = "";
+      puzzleGrid.innerHTML = '';
       tiles = [];
+      selected = [];
+      started = false;
+      elapsed = 0;
+      moves = 0;
+      movesEl.textContent = 0;
+      resetTimer();
+      statusEl.textContent = 'Ready';
 
-      for (let i = 0; i < totalTiles; i++) {
-        const tile = document.createElement("div");
-        tile.classList.add("tile");
-        const x = (i % size) * -100;
-        const y = Math.floor(i / size) * -100;
+      const gridPx = computeGridPx();
+      const tilePx = Math.floor(gridPx / SIZE);
+      puzzleGrid.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
+      puzzleGrid.style.gridTemplateRows = `repeat(${SIZE}, 1fr)`;
+      gridWrapper.style.width = gridWrapper.style.height = gridPx + 'px';
+
+      for (let i = 0; i < SIZE * SIZE; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        const x = (i % SIZE) * -tilePx;
+        const y = Math.floor(i / SIZE) * -tilePx;
         tile.style.backgroundImage = `url(${imageUrl})`;
         tile.style.backgroundPosition = `${x}px ${y}px`;
-        tile.dataset.correct = i;
+        tile.style.backgroundSize = `${gridPx}px ${gridPx}px`;
+        tile.dataset.correct = `${x}px ${y}px`;
+        tile.dataset.index = i;
+        tile.addEventListener('click', () => handleTileClick(tile));
         tiles.push(tile);
-        puzzle.appendChild(tile);
-        tile.addEventListener("click", () => selectTile(tile));
+        puzzleGrid.appendChild(tile);
       }
+
       shuffleTiles();
+      puzzleGrid.style.display = 'grid';
     }
 
-    // Shuffle tiles
     function shuffleTiles() {
       for (let i = tiles.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [tiles[i].style.backgroundPosition, tiles[j].style.backgroundPosition] =
-        [tiles[j].style.backgroundPosition, tiles[i].style.backgroundPosition];
-        [tiles[i].dataset.correct, tiles[j].dataset.correct] =
-        [tiles[j].dataset.correct, tiles[i].dataset.correct];
+        const temp = tiles[i].style.backgroundPosition;
+        tiles[i].style.backgroundPosition = tiles[j].style.backgroundPosition;
+        tiles[j].style.backgroundPosition = temp;
       }
     }
 
-    // Select two tiles to swap
-    function selectTile(tile) {
-      tile.style.border = "2px solid #2563eb";
-      selectedTiles.push(tile);
+    function handleTileClick(tile) {
+      if (!started) startTimer();
+      if (selected.includes(tile)) {
+        tile.classList.remove('selected');
+        selected = selected.filter(t => t !== tile);
+        return;
+      }
+      if (selected.length === 0) {
+        tile.classList.add('selected');
+        selected.push(tile);
+      } else if (selected.length === 1) {
+        tile.classList.add('selected');
+        selected.push(tile);
+        const [a, b] = selected;
+        a.style.transform = 'scale(0.98)';
+        b.style.transform = 'scale(0.98)';
+        setTimeout(() => {
+          swapSelected(a, b);
+          selected.forEach(t => {
+            t.classList.remove('selected');
+            t.style.transform = '';
+          });
+          selected = [];
+          moves++;
+          movesEl.textContent = moves;
 
-      if (selectedTiles.length === 2) {
-        swapTiles(selectedTiles[0], selectedTiles[1]);
-        selectedTiles.forEach(t => t.style.border = "none");
-        selectedTiles = [];
-        if (checkSolved()) {
-          message.textContent = "✨ Calm achieved! Puzzle solved!";
-          setTimeout(() => {
-            message.textContent = "";
-            loadRandomImage();
-          }, 1500);
-        }
+          if (checkSolved()) {
+            const timeMs = Math.floor(elapsed);
+            stopTimer();
+            const beat = saveBestTime(timeMs);
+            messageEl.textContent = "✨ Calm achieved! Puzzle solved!";
+            statusEl.textContent = beat ? 'New Best!' : 'Solved';
+            updateXP();
+            setTimeout(() => {
+              messageEl.textContent = '';
+              loadRandomImage();
+            }, 2200);
+          }
+        }, 180);
       }
     }
 
-    // Swap tiles
-    function swapTiles(tile1, tile2) {
-      [tile1.style.backgroundPosition, tile2.style.backgroundPosition] =
-      [tile2.style.backgroundPosition, tile1.style.backgroundPosition];
-      [tile1.dataset.correct, tile2.dataset.correct] =
-      [tile2.dataset.correct, tile1.dataset.correct];
+    function swapSelected(a, b) {
+      const temp = a.style.backgroundPosition;
+      a.style.backgroundPosition = b.style.backgroundPosition;
+      b.style.backgroundPosition = temp;
     }
 
-    // Check if solved
     function checkSolved() {
-      for (let i = 0; i < totalTiles; i++) {
-        const correctX = (i % size) * -100 + "px";
-        const correctY = Math.floor(i / size) * -100 + "px";
-        const tile = tiles[i];
-        if (tile.style.backgroundPosition !== `${correctX} ${correctY}`) return false;
-      }
-      return true;
+      return tiles.every(t => t.style.backgroundPosition === t.dataset.correct);
     }
 
-    // Hint button
-    hintButton.addEventListener("click", () => {
-      const hintImg = document.createElement("img");
-      hintImg.src = imageUrl;
-      hintImg.style.width = "300px";
-      hintImg.style.height = "300px";
-      hintImg.style.position = "absolute";
-      hintImg.style.borderRadius = "10px";
-      hintImg.style.opacity = "0.9";
-      hintImg.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
-      wrapper.appendChild(hintImg);
-      setTimeout(() => hintImg.remove(), 2000);
+    function showHint() {
+      const overlay = document.createElement('img');
+      overlay.src = imageUrl;
+      overlay.style.position = 'absolute';
+      overlay.style.left = '0';
+      overlay.style.top = '0';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.opacity = '1';
+      overlay.style.borderRadius = '12px';
+      overlay.style.zIndex = '40';
+      gridWrapper.appendChild(overlay);
+      setTimeout(() => overlay.remove(), 1200);
+    }
+
+    function updateXP() {
+      xp += 5;
+      xpEl.textContent = xp;
+      localStorage.setItem(XP_KEY, xp);
+    }
+
+    difficultySelect.addEventListener('change', e => {
+      SIZE = Number(e.target.value);
+      loadRandomImage();
     });
 
-    loadRandomImage();
+    hintBtn.addEventListener('click', showHint);
+    hintSmall.addEventListener('click', showHint);
+    backBtn.addEventListener('click', () => history.back());
+
+    window.addEventListener('load', () => {
+      loadBestTime();
+      loadRandomImage();
+    });
+
+    window.addEventListener('resize', () => {
+      document.documentElement.style.setProperty('--grid-large', computeGridPx() + 'px');
+    });
   </script>
+
 </body>
+
 </html>
