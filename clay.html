@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Piano Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            touch-action: manipulation;
+            background: #1a1a1a;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+        }
+
+        header {
+            background: linear-gradient(90deg, #ff4b4b, #ff8a8a);
+        }
+
+        #piano-container {
+            max-width: 900px;
+            width: 95vw;
+            margin: auto;
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+
+        .key {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            font-weight: bold;
+            user-select: none;
+            border-radius: 6px;
+            margin: 1px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .white {
+            width: 60px;
+            height: 220px;
+            background: #fff;
+            color: #000;
+            box-shadow: 0 5px #ccc;
+            z-index: 1;
+        }
+
+        .white:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px #aaa;
+        }
+
+        .black {
+            width: 40px;
+            height: 140px;
+            background: #222;
+            color: #fff;
+            margin-left: -20px;
+            margin-right: -20px;
+            z-index: 2;
+            box-shadow: 0 5px #000;
+        }
+
+        .black:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px #111;
+        }
+
+        .key-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            opacity: 0;
+            pointer-events: none;
+            animation: glowAnim 0.3s forwards;
+        }
+
+        @keyframes glowAnim {
+            0% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-start min-h-screen pt-6">
+
+    <!-- Header -->
+    <header class="w-full max-w-md shadow-md p-4 flex justify-between items-center mb-4 rounded-lg">
+        <button id="back-btn" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">Back</button>
+        <h1 class="text-2xl font-bold text-center flex-1">Magic Piano</h1>
+    </header>
+
+    <div id="piano-container" class="mb-6"></div>
+    <p class="text-gray-400 mb-4 text-center">Tap or click keys to play notes!</p>
+
+    <script>
+        const notes = [
+            { note: 'C4', freq: 261.63, type: 'white' },
+            { note: 'C#4', freq: 277.18, type: 'black' },
+            { note: 'D4', freq: 293.66, type: 'white' },
+            { note: 'D#4', freq: 311.13, type: 'black' },
+            { note: 'E4', freq: 329.63, type: 'white' },
+            { note: 'F4', freq: 349.23, type: 'white' },
+            { note: 'F#4', freq: 369.99, type: 'black' },
+            { note: 'G4', freq: 392.00, type: 'white' },
+            { note: 'G#4', freq: 415.30, type: 'black' },
+            { note: 'A4', freq: 440.00, type: 'white' },
+            { note: 'A#4', freq: 466.16, type: 'black' },
+            { note: 'B4', freq: 493.88, type: 'white' },
+            { note: 'C5', freq: 523.25, type: 'white' }
+        ];
+
+        const pianoContainer = document.getElementById('piano-container');
+        let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playNote(freq) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        // Create piano keys with glow effect
+        notes.forEach(n => {
+            const key = document.createElement('div');
+            key.className = 'key ' + n.type;
+            key.textContent = n.note;
+            key.addEventListener('mousedown', () => pressKey(key, n.freq));
+            key.addEventListener('touchstart', e => { e.preventDefault(); pressKey(key, n.freq); }, { passive: false });
+            pianoContainer.appendChild(key);
+        });
+
+        function pressKey(key, freq) {
+            playNote(freq);
+            const glow = document.createElement('div'); glow.className = 'key-glow';
+            key.appendChild(glow);
+            setTimeout(() => glow.remove(), 300);
+        }
+
+        document.getElementById('back-btn').addEventListener('click', () => window.location.reload());
+    </script>
+
+</body>
+
+</html>

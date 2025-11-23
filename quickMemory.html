@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Memory Catcher</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: Poppins, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a, #1b2942);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* HEADER */
+        header {
+            width: 100%;
+            padding: 18px 0;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            font-size: 26px;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        #back-btn {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #ff4444;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            color: white;
+        }
+
+        #best-score {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        /* MAIN AREA */
+        #main {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        /* GRID */
+        #game-container {
+            width: 320px;
+            height: 320px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .tile {
+            width: 100px;
+            height: 100px;
+            border-radius: 16px;
+            transition: 0.25s;
+            cursor: pointer;
+        }
+
+        .active {
+            filter: brightness(160%);
+            transform: scale(1.08);
+        }
+
+        /* BUTTON AREA GAP */
+        #controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        #start-btn {
+            background: #40c463;
+            color: white;
+        }
+
+        #restart-btn {
+            background: #5568ff;
+            color: white;
+        }
+
+        #scoreboard {
+            margin-top: 12px;
+            font-size: 22px;
+            font-weight: 500;
+        }
+
+        /* POPUP */
+        #popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 15, 30, 0.95);
+            padding: 30px;
+            border-radius: 14px;
+            display: none;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+
+        #popup button {
+            margin-top: 12px;
+            background: #ff4444;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <button id="back-btn">Back</button>
+        Quick Memory Catcher
+        <span id="best-score">Best: 0</span>
+    </header>
+
+    <div id="main">
+
+        <div id="game-container"></div>
+
+        <div id="scoreboard">Score: 0</div>
+
+        <div id="controls">
+            <button id="start-btn">Start</button>
+            <button id="restart-btn">Restart</button>
+        </div>
+    </div>
+
+    <!-- POPUP -->
+    <div id="popup">
+        <h2>Game Over</h2>
+        <p id="final-score">Your Score: 0</p>
+        <button id="close-popup">Close</button>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById("game-container");
+        const startBtn = document.getElementById("start-btn");
+        const restartBtn = document.getElementById("restart-btn");
+        const scoreboard = document.getElementById("scoreboard");
+        const bestScoreDisplay = document.getElementById("best-score");
+
+        const popup = document.getElementById("popup");
+        const finalScore = document.getElementById("final-score");
+        const closePopup = document.getElementById("close-popup");
+
+        let sequence = [];
+        let userSequence = [];
+        let score = 0;
+
+        /* LOAD BEST SCORE */
+        let bestScore = localStorage.getItem("bestMemoryScore") || 0;
+        bestScoreDisplay.textContent = "Best: " + bestScore;
+
+        /* Colors for tiles */
+        const tileColors = [
+            "#ff6b6b", "#ffbe76", "#f6e58d",
+            "#badc58", "#6ab04c", "#22a6b3",
+            "#be2edd", "#686de0", "#30336b"
+        ];
+
+        /* Create tiles */
+        for (let i = 0; i < 9; i++) {
+            const tile = document.createElement("div");
+            tile.classList.add("tile");
+            tile.style.background = tileColors[i];
+            tile.id = i;
+            tile.addEventListener("click", () => userClick(i));
+            gameContainer.appendChild(tile);
+        }
+
+        function startGame() {
+            sequence = [];
+            userSequence = [];
+            score = 0;
+            scoreboard.textContent = "Score: 0";
+            nextRound();
+        }
+
+        function nextRound() {
+            userSequence = [];
+            const nextTile = Math.floor(Math.random() * 9);
+            sequence.push(nextTile);
+            playSequence();
+        }
+
+        function playSequence() {
+            let i = 0;
+            const interval = setInterval(() => {
+                highlight(sequence[i]);
+                i++;
+                if (i >= sequence.length) clearInterval(interval);
+            }, 650);
+        }
+
+        function highlight(i) {
+            const tile = document.getElementById(i);
+            tile.classList.add("active");
+            setTimeout(() => tile.classList.remove("active"), 350);
+        }
+
+        function userClick(tileId) {
+            userSequence.push(tileId);
+            highlight(tileId);
+
+            if (userSequence[userSequence.length - 1] !== sequence[userSequence.length - 1]) {
+                gameOver();
+                return;
+            }
+
+            if (userSequence.length === sequence.length) {
+                score++;
+                scoreboard.textContent = "Score: " + score;
+                setTimeout(nextRound, 700);
+            }
+        }
+
+        function gameOver() {
+            finalScore.textContent = "Your Score: " + score;
+            popup.style.display = "block";
+
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem("bestMemoryScore", bestScore);
+                bestScoreDisplay.textContent = "Best: " + bestScore;
+            }
+        }
+
+        startBtn.addEventListener("click", startGame);
+        restartBtn.addEventListener("click", startGame);
+        closePopup.addEventListener("click", () => {
+            popup.style.display = "none";
+            score = 0;
+            scoreboard.textContent = "Score: 0";
+        });
+
+        document.getElementById("back-btn").addEventListener("click", () => {
+            window.history.back();
+        });
+    </script>
+
+</body>
+
+</html>

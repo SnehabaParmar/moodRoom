@@ -1,333 +1,405 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8">
+  <title>Zen Drawing Pad — Light (with fixed Undo)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Zen Drawing Pad</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    html,body { height:100%; margin:0; }
     body {
-      background: linear-gradient(135deg,#f0f7ff 0%, #fff4f8 50%, #fbfefc 100%);
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      -webkit-tap-highlight-color: transparent;
-      -webkit-user-select: none;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      font-family: Poppins, sans-serif;
+      background: linear-gradient(135deg, #f4f8ff, #e6f0ff);
+      display: flex;
+      flex-direction: column;
       user-select: none;
     }
 
-    /* Layout helpers */
-    .app {
-      height: 100vh;
+    /* HEADER */
+    .header {
+      width: 100%;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(6px);
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      padding: 16px;
-      box-sizing: border-box;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
     }
 
-    .canvas-wrap {
-      width: 100%;
-      max-width: 900px;
-      flex: 1 1 auto;
+    .title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .back {
+      background: #ff6961;
+      padding: 5px 14px;
+      border-radius: 20px;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .back:hover {
+      background: #ff4b41;
+    }
+
+    /* CANVAS AREA */
+    .container {
+      flex: 1;
       display: flex;
-      align-items: center;
       justify-content: center;
-      margin-top: 12px;
-      margin-bottom: 12px;
+      align-items: center;
+      padding: 18px;
     }
 
     .paper {
       width: 100%;
-      height: 100%;
-      max-height: calc(100vh - 180px);
-      border-radius: 14px;
-      box-shadow: 0 10px 30px rgba(2,6,23,0.08);
+      max-width: 900px;
       background: white;
+      border-radius: 16px;
+      box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.12);
       overflow: hidden;
-      touch-action: none; /* prevents scrolling while drawing */
-      position: relative;
       display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
     }
 
     canvas {
+      background: white;
+      border-radius: 12px;
+      touch-action: none;
       width: 100%;
-      height: 100%;
-      display: block;
-      cursor: crosshair;
+      height: 70vh;
+      max-height: 640px;
     }
 
-    /* Small UI tweaks */
-    .tool {
-      background: rgba(255,255,255,0.7);
-      backdrop-filter: blur(6px);
-      border-radius: 999px;
-      box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+    /* TOOLS */
+    .toolbar {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(5px);
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.06);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 8px 14px;
+      border-radius: 25px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      background: #dde6ff;
+      color: #333;
+      transition: 0.15s;
+    }
+
+    button:hover {
+      background: #c8d5ff;
+    }
+
+    .active {
+      background: #87b4ff !important;
+      color: white;
+    }
+
+    input[type="color"] {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.08);
+    }
+
+    /* NOTE */
+    .note {
+      width: 100%;
+      max-width: 900px;
+      margin: 10px auto 28px;
+      color: #334155;
+      font-size: 14px;
+      line-height: 1.45;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 10px 14px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(2, 6, 23, 0.04);
     }
   </style>
 </head>
+
 <body>
-  <div class="app">
 
-    
-    <header class="w-full max-w-3xl flex items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <button onclick="history.back()" class="tool px-3 py-2 rounded-full text-sm">⬅ Back</button>
-        <div>
-          <h1 class="text-lg font-semibold text-slate-800 leading-none">Zen Drawing Pad</h1>
-          <p class="text-xs text-slate-600">Draw freely — relax and flow</p>
-        </div>
-      </div>
+  <!-- HEADER -->
+  <div class="header">
+    <div class="back" onclick="history.back()">← Back</div>
+    <div class="title">Zen Drawing Pad</div>
+    <div style="width:60px;"></div>
+  </div>
 
-      <div class="flex items-center gap-2">
-    
-        <label class="tool px-3 py-2 flex items-center gap-2">
-          <input id="color" type="color" class="w-8 h-8 p-0 border-0" value="#5b21b6" title="Brush color">
-          <span class="text-sm text-slate-700">Color</span>
-        </label>
-
-       
-        <label class="tool px-3 py-2 flex items-center gap-2">
-          <input id="size" type="range" min="1" max="60" value="18" class="w-24" />
-          <span id="sizeLabel" class="text-sm text-slate-700">18</span>
-        </label>
-
-       
-        <button id="clearBtn" class="tool px-3 py-2 rounded-full text-sm">Clear</button>
-
-       
-        <button id="saveBtn" class="tool px-3 py-2 rounded-full text-sm">Save</button>
-      </div>
-    </header>
-
-   
-    <div class="canvas-wrap w-full max-w-3xl">
-      <div class="paper w-full">
-        <canvas id="pad"></canvas>
-      </div>
+  <!-- CANVAS -->
+  <div class="container">
+    <div class="paper">
+      <canvas id="pad"></canvas>
     </div>
+  </div>
 
-   
-    <footer class="w-full max-w-3xl text-center text-sm text-slate-600">
-      Tip: Use two fingers to pinch/zoom the page (drawing is single-touch). Works best with one finger or mouse.
-    </footer>
+  <!-- TOOLS -->
+  <div class="toolbar">
+    <button id="brushBtn" class="active">Brush</button>
+    <button id="eraserBtn">Eraser</button>
+    <button id="symBtn">Symmetry</button>
+
+    <input type="color" id="colorPicker" value="#0074ff" title="Choose brush color">
+
+    <label style="display:flex;align-items:center;gap:8px;">
+      <input id="sizeRange" type="range" min="1" max="80" value="12">
+      <small id="sizeLabel">12</small>
+    </label>
+
+    <button id="undoBtn">Undo</button>
+    <button id="clearBtn">Clear</button>
+  </div>
+
+  <!-- SHORT NOTE -->
+  <div class="note">
+    <strong>How to use:</strong>
+    <ul style="margin:8px 0 0 18px;padding:0;">
+      <li>Choose <em>Brush</em> or <em>Eraser</em>, pick a color and brush size.</li>
+      <li>Draw with mouse or one-finger touch. Turn on <em>Symmetry</em> to mirror strokes horizontally.</li>
+      <li><em>Undo</em> steps back one stroke at a time. <em>Clear</em> empties the canvas (you can undo Clear).</li>
+      <li>Use the Back button to return to the previous screen.</li>
+    </ul>
   </div>
 
   <script>
-    // ===== Zen Drawing Pad =====
+    /* ===== Canvas init & responsive sizing ===== */
     const canvas = document.getElementById('pad');
-    const colorEl = document.getElementById('color');
-    const sizeEl = document.getElementById('size');
-    const sizeLabel = document.getElementById('sizeLabel');
-    const clearBtn = document.getElementById('clearBtn');
-    const saveBtn = document.getElementById('saveBtn');
+    const ctx = canvas.getContext('2d');
 
-    let ctx, DPR, width, height;
-    let drawing = false;
-    let lastPoint = null;
-    let points = []; // for smoothing
-    let brushColor = colorEl.value;
-    let brushSize = parseInt(sizeEl.value, 10);
-
-    // initialize canvas size (respect devicePixelRatio)
-    function resizeCanvas() {
-      DPR = Math.max(1, window.devicePixelRatio || 1);
+    function fitCanvasToContainer() {
       const rect = canvas.getBoundingClientRect();
-      // if zero (not yet attached), use parent size
-      const parent = canvas.parentElement;
-      const pw = parent.clientWidth;
-      const ph = parent.clientHeight;
-      width = Math.max(300, pw);
-      height = Math.max(300, ph);
-      canvas.width = Math.floor(width * DPR);
-      canvas.height = Math.floor(height * DPR);
-      canvas.style.width = width + 'px';
-      canvas.style.height = height + 'px';
-
-      ctx = canvas.getContext('2d', { alpha: true });
+      // choose pixel ratio that keeps crispness
+      const DPR = Math.max(1, window.devicePixelRatio || 1);
+      const width = Math.round(rect.width * DPR);
+      const height = Math.round(rect.height * DPR);
+      // preserve current drawing
+      const data = canvas.toDataURL();
+      canvas.width = width;
+      canvas.height = height;
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      // canvas initial config
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      redraw(); // keep current drawing (if any)
+      // redraw previous image if exists
+      const img = new Image();
+      img.src = data;
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width / DPR, canvas.height / DPR);
+      };
     }
 
-    // drawing state management
-    function startStroke(x, y) {
+    window.addEventListener('resize', () => {
+      // small timeout so layout stabilizes
+      setTimeout(fitCanvasToContainer, 60);
+    });
+
+    /* ===== Drawing state & tools ===== */
+    let drawing = false;
+    let eraser = false;
+    let symmetry = false;
+    let brushColor = document.getElementById('colorPicker').value;
+    let brushSize = Number(document.getElementById('sizeRange').value);
+    document.getElementById('sizeLabel').textContent = brushSize;
+
+    /* ===== Undo stack (stores dataURLs) ===== */
+    const historyStack = [];
+
+    // Save current canvas state (call before a change)
+    function saveState() {
+      try {
+        const snap = canvas.toDataURL();
+        historyStack.push(snap);
+        if (historyStack.length > 60) historyStack.shift(); // cap history
+      } catch (e) {
+        // toDataURL can fail on some cross-origin canvases; ignore gracefully
+        console.warn('saveState failed', e);
+      }
+    }
+
+    // Undo to previous state
+    function undo() {
+      if (historyStack.length === 0) {
+        // nothing to undo -> clear
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
+      // pop current snapshot (last saved before last stroke)
+      historyStack.pop();
+      const last = historyStack[historyStack.length - 1];
+      if (!last) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
+      const img = new Image();
+      img.src = last;
+      img.onload = () => {
+        // draw at logical size (canvas style size)
+        const DPR = Math.max(1, window.devicePixelRatio || 1);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width / DPR, canvas.height / DPR);
+      };
+    }
+
+    /* Drawing helpers */
+    function getPointerPos(e) {
+      const r = canvas.getBoundingClientRect();
+      if (e.touches && e.touches[0]) {
+        return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+      }
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    }
+
+    function beginStroke(x, y) {
+      // save state before user changes canvas
+      saveState();
       drawing = true;
-      points = [{x, y, t: Date.now()}];
-      lastPoint = {x, y};
-      drawDot(x, y); // initial dot to avoid gap
+      lastPoint = { x, y };
+      // draw a dot to start
+      drawLine(lastPoint, lastPoint);
+    }
+
+    function drawLine(p1, p2) {
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = eraser ? brushSize * 2 : brushSize;
+      ctx.strokeStyle = eraser ? '#ffffff' : brushColor;
+      ctx.shadowBlur = eraser ? 0 : Math.max(brushSize * 0.6, 6);
+      ctx.shadowColor = brushColor;
+
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+
+      if (symmetry) {
+        const w = canvas.getBoundingClientRect().width;
+        ctx.beginPath();
+        ctx.moveTo(w - p1.x, p1.y);
+        ctx.lineTo(w - p2.x, p2.y);
+        ctx.stroke();
+      }
     }
 
     function moveStroke(x, y) {
       if (!drawing) return;
-      points.push({x, y, t: Date.now()});
-      if (points.length >= 3) {
-        // draw using quadratic Bezier through previous points for smoothing
-        const prev = points[points.length - 3];
-        const ctrl = points[points.length - 2];
-        const curr = points[points.length - 1];
-        const cpx = ctrl.x;
-        const cpy = ctrl.y;
-        const toX = (ctrl.x + curr.x) / 2;
-        const toY = (ctrl.y + curr.y) / 2;
-
-        const pressure = calcPressure(prev, ctrl, curr); // estimated pressure based on speed
-        const size = brushSize * pressure;
-
-        ctx.strokeStyle = brushColor;
-        ctx.lineWidth = size;
-        ctx.beginPath();
-        ctx.moveTo(prev.x, prev.y);
-        ctx.quadraticCurveTo(cpx, cpy, toX, toY);
-
-        // subtle glow (soft brush)
-        ctx.shadowBlur = Math.max(brushSize * 0.6, 6);
-        ctx.shadowColor = brushColor;
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      } else {
-        drawDot(x, y);
-      }
-      lastPoint = {x, y};
+      const p = { x, y };
+      drawLine(lastPoint, p);
+      lastPoint = p;
     }
 
     function endStroke() {
       drawing = false;
-      points = [];
-      lastPoint = null;
     }
 
-    // draws a filled dot (used for taps)
-    function drawDot(x, y) {
-      ctx.fillStyle = brushColor;
-      ctx.beginPath();
-      ctx.shadowBlur = Math.max(brushSize * 0.6, 6);
-      ctx.shadowColor = brushColor;
-      ctx.arc(x, y, brushSize / 2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
+    /* Wire mouse/touch events */
+    let lastPoint = null;
+    canvas.addEventListener('mousedown', (e) => {
+      const p = getPointerPos(e);
+      beginStroke(p.x, p.y);
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!drawing) return;
+      const p = getPointerPos(e);
+      moveStroke(p.x, p.y);
+    });
+    window.addEventListener('mouseup', () => endStroke());
 
-    // estimated pressure based on movement speed (slower = thicker)
-    function calcPressure(a, b, c) {
-      const dx = c.x - a.x;
-      const dy = c.y - a.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      // normalize into 0.5..1.2 range
-      const p = Math.max(0.5, Math.min(1.2, 1.2 - (dist / 120)));
-      return p;
-    }
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const p = getPointerPos(e);
+      beginStroke(p.x, p.y);
+    }, { passive: false });
 
-    // clear canvas
-    function clearCanvas() {
-      ctx.clearRect(0, 0, width, height);
-    }
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!drawing) return;
+      const p = getPointerPos(e);
+      moveStroke(p.x, p.y);
+    }, { passive: false });
 
-    // save as PNG
-    function saveImage() {
-      // create a white background composite so saved image has white paper
-      const tmp = document.createElement('canvas');
-      tmp.width = canvas.width;
-      tmp.height = canvas.height;
-      const tctx = tmp.getContext('2d');
-      tctx.fillStyle = '#ffffff';
-      tctx.fillRect(0,0,tmp.width,tmp.height);
-      // draw current canvas on top (scale for DPR)
-      tctx.drawImage(canvas, 0, 0, tmp.width, tmp.height);
-      const url = tmp.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `zen-drawing-${Date.now()}.png`;
-      a.click();
-    }
+    canvas.addEventListener('touchend', (e) => {
+      endStroke();
+    }, { passive: false });
 
-    // redraw - placeholder if we implement persistent layers later
-    function redraw() {
-      // for now nothing persistent to reapply (we draw directly)
-    }
+    /* Tools UI wiring */
+    const brushBtn = document.getElementById('brushBtn');
+    const eraserBtn = document.getElementById('eraserBtn');
+    const symBtn = document.getElementById('symBtn');
+    const colorPicker = document.getElementById('colorPicker');
+    const sizeRange = document.getElementById('sizeRange');
+    const sizeLabel = document.getElementById('sizeLabel');
+    const undoBtn = document.getElementById('undoBtn');
+    const clearBtn = document.getElementById('clearBtn');
 
-    // Pointer event helpers (normalize mouse & touch)
-    function getPointerPos(e) {
+    brushBtn.addEventListener('click', () => {
+      eraser = false;
+      brushBtn.classList.add('active');
+      eraserBtn.classList.remove('active');
+    });
+    eraserBtn.addEventListener('click', () => {
+      eraser = true;
+      eraserBtn.classList.add('active');
+      brushBtn.classList.remove('active');
+    });
+    symBtn.addEventListener('click', () => {
+      symmetry = !symmetry;
+      symBtn.classList.toggle('active');
+    });
+    colorPicker.addEventListener('input', (e) => {
+      brushColor = e.target.value;
+    });
+    sizeRange.addEventListener('input', (e) => {
+      brushSize = Number(e.target.value);
+      sizeLabel.textContent = brushSize;
+    });
+    undoBtn.addEventListener('click', undo);
+    clearBtn.addEventListener('click', () => {
+      // save current state so Clear can be undone
+      saveState();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    /* initialize canvas size and initial history snapshot */
+    function init() {
+      // set canvas style size now (makes getBoundingClientRect correct)
       const rect = canvas.getBoundingClientRect();
-      if (e.touches && e.touches.length) {
-        return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
-      } else if (e.changedTouches && e.changedTouches.length) {
-        return { x: e.changedTouches[0].clientX - rect.left, y: e.changedTouches[0].clientY - rect.top };
-      } else {
-        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      if (!rect.width || !rect.height) {
+        // set default CSS size if not set
+        canvas.style.width = Math.min(900, window.innerWidth - 80) + 'px';
+        canvas.style.height = Math.min(640, window.innerHeight - 220) + 'px';
       }
+      fitCanvasToContainer();
+      // initial empty snapshot
+      try {
+        historyStack.push(canvas.toDataURL());
+      } catch (e) { /* ignore */ }
     }
 
-    // Event wiring
-    function attachEvents() {
-      // Mouse
-      canvas.addEventListener('mousedown', (e) => {
-        const p = getPointerPos(e);
-        startStroke(p.x, p.y);
-      });
-      window.addEventListener('mousemove', (e) => {
-        if (!drawing) return;
-        const p = getPointerPos(e);
-        moveStroke(p.x, p.y);
-      });
-      window.addEventListener('mouseup', () => endStroke());
-
-      // Touch
-      canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        const p = getPointerPos(e);
-        startStroke(p.x, p.y);
-      }, { passive: false });
-      canvas.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        const p = getPointerPos(e);
-        moveStroke(p.x, p.y);
-      }, { passive: false });
-      canvas.addEventListener('touchend', (e) => {
-        endStroke();
-      });
-
-      // UI controls
-      colorEl.addEventListener('input', (e) => { brushColor = e.target.value; });
-      sizeEl.addEventListener('input', (e) => {
-        brushSize = parseInt(e.target.value,10);
-        sizeLabel.textContent = brushSize;
-      });
-      clearBtn.addEventListener('click', () => {
-        // gentle fade-out clear animation
-        const fadeSteps = 6;
-        let step = 0;
-        const id = setInterval(() => {
-          ctx.fillStyle = `rgba(255,255,255,${(step+1)/(fadeSteps+1)})`;
-          ctx.fillRect(0,0,width,height);
-          step++;
-          if (step >= fadeSteps) {
-            clearInterval(id);
-            clearCanvas();
-          }
-        }, 35);
-      });
-      saveBtn.addEventListener('click', saveImage);
-
-      window.addEventListener('resize', () => resizeCanvas());
-    }
-
-    // init
-    setTimeout(() => {
-      // ensure parent sizes settled
-      resizeCanvas();
-      attachEvents();
-    }, 80);
-
-    // prevent double-tap to zoom on mobile interfering with drawing
-    document.addEventListener('touchstart', function(e) {
-      if (e.touches.length > 1) e.preventDefault();
-    }, {passive:false});
+    init();
   </script>
 </body>
+
 </html>
-
-

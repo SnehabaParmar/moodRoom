@@ -13,11 +13,28 @@
       height: 100%;
       margin: 0;
       padding: 0;
-      background: linear-gradient(135deg, #0e0f12, #1a1f27);
+      background: linear-gradient(180deg, #4b79a1, #283e51);
+      background-size: 300% 300%;
+      animation: curiousGradient 6s ease-in-out infinite;
       color: #e5e7eb;
       font-family: "Inter", sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
+
+    @keyframes curiousGradient {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
 
     #canvasWrap {
       display: flex;
