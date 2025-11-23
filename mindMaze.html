@@ -1,40 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>🧠 Mind Maze</title>
   <script src="https://cdn.tailwindcss.com"></script>
+
   <style>
-    html,body {
+    html,
+    body {
       height: 100%;
       margin: 0;
-    }
-    body {
-      background: radial-gradient(circle at 30% 20%, #222831, #111418);
-      color: #e0e0e0;
-      font-family: 'Inter', sans-serif;
+      padding: 0;
+      background: linear-gradient(135deg, #0e0f12, #1a1f27);
+      color: #e5e7eb;
+      font-family: "Inter", sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    /* Canvas container */
     #canvasWrap {
       display: flex;
       align-items: center;
       justify-content: center;
       width: 100%;
-      padding: 16px;
+      padding: 12px;
       box-sizing: border-box;
     }
 
     canvas {
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.05);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+      transition: all 0.18s ease;
       touch-action: none;
-      transition: all 0.2s ease;
+      -webkit-user-select: none;
+      user-select: none;
     }
 
-    /* Mobile directional controls */
     .controls {
       position: fixed;
       bottom: 16px;
@@ -50,232 +55,457 @@
     }
 
     .control-btn {
-      width: 56px; height: 56px;
-      background: rgba(255,255,255,0.08);
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 999px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #eee;
+      color: #fff;
       font-size: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .control-btn:hover { background: rgba(255,255,255,0.15); }
-
-    @media(min-width:768px){
-      .controls { display: none; }
+      transition: 0.18s;
     }
 
-    /* Buttons */
-    button {
-      transition: all 0.25s ease;
+    .control-btn:active {
+      transform: translateY(1px) scale(0.98);
     }
-    button:hover {
-      transform: translateY(-2px);
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    @media(min-width:768px) {
+      .controls {
+        display: none;
+      }
+    }
+
+    #winPopup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 9999;
+    }
+
+    #winPopup .card {
+      width: 92%;
+      max-width: 380px;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      color: #0b1220;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 20px 50px rgba(2, 6, 23, 0.6);
+      text-align: center;
+      animation: popScale 260ms ease-out;
+    }
+
+    @keyframes popScale {
+      from {
+        transform: scale(0.85);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .top-actions {
+      gap: 10px;
+      display: flex;
+      align-items: center;
+    }
+
+    .btn {
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
+      color: #e6eef0;
+      transition: all .15s;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .stat-row {
+      font-size: 13px;
+      opacity: 0.95;
+      margin-top: 8px;
     }
   </style>
 </head>
-<body class="flex flex-col items-center justify-start min-h-screen text-white">
 
-  <header class="w-full max-w-3xl mt-8 px-6">
-    <h1 class="text-3xl font-semibold text-teal-400">🧠 Mind Maze</h1>
-    <p class="text-sm opacity-80 mt-1">Navigate to the glowing exit — use arrows/WASD or touch buttons.</p>
-  </header>
+<body class="flex flex-col items-center min-h-screen">
+
+  <!-- Header -->
+  <div
+    class="w-full bg-black/30 backdrop-blur-lg border-b border-white/8 flex items-center px-4 py-3 sticky top-0 z-50">
+    <button onclick="history.back()" class="text-white text-lg hover:text-teal-300 transition btn">⬅ Back</button>
+    <h1 class="flex-1 text-center text-xl md:text-2xl font-semibold text-teal-400">🧠 Mind Maze</h1>
+  </div>
+
+  <p class="mt-3 text-sm opacity-80">Navigate to the glowing exit using Arrow Keys, WASD, or touch buttons.</p>
 
   <div id="canvasWrap" class="w-full max-w-3xl flex-1">
     <canvas id="mazeCanvas"></canvas>
   </div>
 
-  <div class="w-full max-w-3xl px-6 mb-6 flex items-center justify-between">
+  <div class="w-full max-w-3xl px-6 mb-4 flex flex-col md:flex-row items-center justify-between">
     <div class="flex gap-3">
-      <button id="regen" class="px-4 py-2 rounded-lg bg-teal-500/20 hover:bg-teal-500/30">New Maze</button>
-      <button id="solveHint" class="px-4 py-2 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30">Hint</button>
+      <button id="regen" class="px-4 py-2 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 btn">New Maze</button>
+      <button id="solveHint" class="px-4 py-2 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 btn">Hint</button>
     </div>
-    <div class="text-sm opacity-90">Steps: <span id="steps">0</span></div>
+
+    <div class="stat-row text-sm mt-3 md:mt-0">
+      Steps: <span id="steps">0</span> &nbsp; | &nbsp;
+      ⏱ Time: <span id="timer">00:00</span> &nbsp; | &nbsp;
+      🏅 Best Time: <span id="bestTime">--</span> &nbsp; | &nbsp;
+      🔥 Best Moves: <span id="bestMoves">--</span>
+    </div>
   </div>
 
-  <!-- Mobile Controls -->
-  <div class="controls">
-    <div></div>
-    <div id="upBtn" class="control-btn">⬆️</div>
-    <div></div>
-    <div id="leftBtn" class="control-btn">⬅️</div>
-    <div id="downBtn" class="control-btn">⬇️</div>
-    <div id="rightBtn" class="control-btn">➡️</div>
+
+  <!-- Win Popup -->
+  <div id="winPopup">
+    <div class="card">
+      <h2 class="text-2xl font-bold mb-2">🎉 You Cleared the Maze!</h2>
+      <p class="mb-3">Time: <strong id="popupTime">00:00</strong></p>
+      <p class="mb-4">Steps: <strong id="popupSteps">0</strong></p>
+      <div class="flex gap-3 justify-center">
+        <button id="playAgainBtn" class="px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700">Play
+          Again</button>
+        <button id="closePopup" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-900">Close</button>
+      </div>
+    </div>
   </div>
 
-<script>
-const canvas = document.getElementById('mazeCanvas');
-const ctx = canvas.getContext('2d');
-const stepsEl = document.getElementById('steps');
-const regenBtn = document.getElementById('regen');
-const hintBtn = document.getElementById('solveHint');
+  <script>
+    /* Same game logic as before — music parts removed */
 
-let GRID = 21;
-let grid, player, goal, cellSizePx, steps = 0, DPR = window.devicePixelRatio || 1;
+    const canvas = document.getElementById('mazeCanvas');
+    const ctx = canvas.getContext('2d');
 
-function fitCanvas() {
-  const wrap = document.getElementById('canvasWrap');
-  const rect = wrap.getBoundingClientRect();
-  const side = Math.min(rect.width, window.innerHeight - 220);
-  canvas.style.width = side + 'px';
-  canvas.style.height = side + 'px';
-  canvas.width = side * DPR;
-  canvas.height = side * DPR;
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  cellSizePx = side / GRID;
-}
+    const stepsEl = document.getElementById('steps');
+    const regenBtn = document.getElementById('regen');
+    const hintBtn = document.getElementById('solveHint');
 
-function makeEmptyGrid(n){
-  const g = Array(n).fill().map(()=>Array(n).fill(1));
-  return g;
-}
+    const winPopup = document.getElementById('winPopup');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+    const closePopupBtn = document.getElementById('closePopup');
+    const popupTime = document.getElementById('popupTime');
+    const popupSteps = document.getElementById('popupSteps');
 
-function generateMaze(size){
-  GRID = size;
-  grid = makeEmptyGrid(GRID);
-  const dirs = [[0,-2],[2,0],[0,2],[-2,0]];
-  const stack = [[1,1]];
-  grid[1][1]=0;
-  while(stack.length){
-    const [cx,cy]=stack.at(-1);
-    const neighbors=[];
-    for(const [dx,dy] of dirs){
-      const nx=cx+dx, ny=cy+dy;
-      if(nx>0&&ny>0&&nx<GRID-1&&ny<GRID-1&&grid[ny][nx]===1){
-        neighbors.push([nx,ny,dx,dy]);
+    let GRID = 21;
+    let grid, player, goal, cellSizePx, steps = 0;
+    let DPR = window.devicePixelRatio || 1;
+
+    let timerInterval = null;
+    let timeElapsed = 0;
+
+    function startTimer() {
+      stopTimer();
+      timeElapsed = 0;
+      document.getElementById('timer').textContent = '00:00';
+      timerInterval = setInterval(() => {
+        timeElapsed++;
+        const mins = String(Math.floor(timeElapsed / 60)).padStart(2, '0');
+        const secs = String(timeElapsed % 60).padStart(2, '0');
+        document.getElementById('timer').textContent = `${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function saveBestScore() {
+      const bestMoves = localStorage.getItem('best_moves');
+      const bestTime = localStorage.getItem('best_time');
+
+      if (!bestMoves || steps < Number(bestMoves)) localStorage.setItem('best_moves', steps);
+      if (!bestTime || timeElapsed < Number(bestTime)) localStorage.setItem('best_time', timeElapsed);
+
+      updateBestUI();
+    }
+
+    function updateBestUI() {
+      let bm = localStorage.getItem('best_moves') || '--';
+      let bt = localStorage.getItem('best_time') || '--';
+
+      if (bt !== '--') {
+        const mins = String(Math.floor(bt / 60)).padStart(2, '0');
+        const secs = String(bt % 60).padStart(2, '0');
+        bt = `${mins}:${secs}`;
+      }
+
+      document.getElementById('bestMoves').textContent = bm;
+      document.getElementById('bestTime').textContent = bt;
+    }
+
+    function fitCanvas() {
+      const wrap = document.getElementById('canvasWrap');
+      const rect = wrap.getBoundingClientRect();
+      const side = Math.min(rect.width, window.innerHeight - 220);
+      canvas.style.width = side + 'px';
+      canvas.style.height = side + 'px';
+      canvas.width = Math.round(side * DPR);
+      canvas.height = Math.round(side * DPR);
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      cellSizePx = side / GRID;
+    }
+
+    function makeEmptyGrid(n) {
+      return Array(n).fill().map(() => Array(n).fill(1));
+    }
+
+    function generateMaze(size) {
+      GRID = size;
+      grid = makeEmptyGrid(GRID);
+
+      const dirs = [[0, -2], [2, 0], [0, 2], [-2, 0]];
+      const stack = [[1, 1]];
+      grid[1][1] = 0;
+
+      while (stack.length) {
+        const [cx, cy] = stack.at(-1);
+        const neighbors = [];
+
+        for (const [dx, dy] of dirs) {
+          const nx = cx + dx, ny = cy + dy;
+          if (nx > 0 && ny > 0 && nx < GRID - 1 && ny < GRID - 1 && grid[ny][nx] === 1) {
+            neighbors.push([nx, ny, dx, dy]);
+          }
+        }
+
+        if (!neighbors.length) stack.pop();
+        else {
+          const [nx, ny, dx, dy] = neighbors[Math.floor(Math.random() * neighbors.length)];
+          grid[cy + dy / 2][cx + dx / 2] = 0;
+          grid[ny][nx] = 0;
+          stack.push([nx, ny]);
+        }
+      }
+
+      player = { x: 1, y: 1 };
+      goal = { x: GRID - 2, y: GRID - 2 };
+
+      steps = 0;
+      stepsEl.textContent = steps;
+
+      startTimer();
+    }
+
+    function canMoveTo(x, y) {
+      return grid[y] && grid[y][x] === 0;
+    }
+
+    function moveDir(dx, dy) {
+      let nx = player.x, ny = player.y;
+
+      while (true) {
+        const nextX = nx + dx, nextY = ny + dy;
+        if (!canMoveTo(nextX, nextY)) break;
+
+        nx = nextX;
+        ny = nextY;
+
+        const options = [[0, 1], [1, 0], [0, -1], [-1, 0]].filter(
+          ([a, b]) => canMoveTo(nx + a, ny + b)
+        );
+
+        if (options.length > 2) break;
+      }
+
+      if (nx !== player.x || ny !== player.y) {
+        player.x = nx;
+        player.y = ny;
+
+        steps++;
+        stepsEl.textContent = steps;
+
+        draw();
+
+        if (player.x === goal.x && player.y === goal.y) {
+          stopTimer();
+          saveBestScore();
+          showWinPopup();
+        }
       }
     }
-    if(!neighbors.length){ stack.pop(); }
-    else{
-      const [nx,ny,dx,dy]=neighbors[Math.floor(Math.random()*neighbors.length)];
-      grid[cy+dy/2][cx+dx/2]=0;
-      grid[ny][nx]=0;
-      stack.push([nx,ny]);
+
+    function findNextStep() {
+      const q = [{ x: player.x, y: player.y }];
+      const parent = Array(GRID).fill().map(() => Array(GRID).fill(null));
+      const dirs = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+
+      parent[player.y][player.x] = 'start';
+
+      while (q.length) {
+        const cur = q.shift();
+        if (cur.x === goal.x && cur.y === goal.y) break;
+
+        for (const [dx, dy] of dirs) {
+          const nx = cur.x + dx, ny = cur.y + dy;
+
+          if (canMoveTo(nx, ny) && !parent[ny][nx]) {
+            parent[ny][nx] = cur;
+            q.push({ x: nx, y: ny });
+          }
+        }
+      }
+
+      let cur = { x: goal.x, y: goal.y };
+      if (!parent[cur.y][cur.x]) return null;
+
+      while (parent[cur.y][cur.x] !== 'start') {
+        const prev = parent[cur.y][cur.x];
+        if (prev.x === player.x && prev.y === player.y) return cur;
+        cur = prev;
+      }
+
+      return null;
     }
-  }
-  player={x:1,y:1};
-  goal={x:GRID-2,y:GRID-2};
-  steps=0;
-  stepsEl.textContent=steps;
-}
 
-function canMoveTo(x,y){ return grid[y] && grid[y][x]===0; }
+    function draw(hint = null) {
+      ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
-function moveDir(dx,dy){
-  // move in one direction until wall or intersection
-  let nx = player.x, ny = player.y;
-  while(true){
-    const nextX = nx + dx, nextY = ny + dy;
-    if(!canMoveTo(nextX,nextY)) break;
-    nx = nextX; ny = nextY;
-    const options = [[0,1],[1,0],[0,-1],[-1,0]].filter(([a,b])=>canMoveTo(nx+a,ny+b));
-    if(options.length>2) break; // stop at intersection
-  }
-  if(nx!==player.x || ny!==player.y){
-    player.x=nx; player.y=ny;
-    steps++; stepsEl.textContent=steps;
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      for (let y = 0; y < GRID; y++) {
+        for (let x = 0; x < GRID; x++) {
+          if (grid[y][x] === 1) {
+            ctx.fillRect(x * cellSizePx, y * cellSizePx, cellSizePx, cellSizePx);
+          }
+        }
+      }
+
+      const gx = goal.x * cellSizePx + cellSizePx / 2;
+      const gy = goal.y * cellSizePx + cellSizePx / 2;
+
+      const grad = ctx.createRadialGradient(gx, gy, 2, gx, gy, cellSizePx * 0.8);
+      grad.addColorStop(0, '#00ffbf');
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+
+      ctx.beginPath();
+      ctx.arc(gx, gy, cellSizePx * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (hint) {
+        ctx.fillStyle = 'rgba(0,255,255,0.48)';
+        ctx.beginPath();
+        ctx.arc(
+          hint.x * cellSizePx + cellSizePx / 2,
+          hint.y * cellSizePx + cellSizePx / 2,
+          cellSizePx * 0.3,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+      }
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(
+        player.x * cellSizePx + cellSizePx / 2,
+        player.y * cellSizePx + cellSizePx / 2,
+        cellSizePx * 0.3,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+
+    function showWinPopup() {
+      popupTime.textContent = `${String(Math.floor(timeElapsed / 60)).padStart(2, '0')}:${String(timeElapsed % 60).padStart(2, '0')}`;
+      popupSteps.textContent = steps;
+
+      winPopup.style.display = 'flex';
+    }
+
+    function hideWinPopup() {
+      winPopup.style.display = 'none';
+    }
+
+    window.addEventListener('resize', () => {
+      fitCanvas();
+      draw();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      const k = e.key.toLowerCase();
+      if (['arrowup', 'w'].includes(k)) moveDir(0, -1);
+      if (['arrowdown', 's'].includes(k)) moveDir(0, 1);
+      if (['arrowleft', 'a'].includes(k)) moveDir(-1, 0);
+      if (['arrowright', 'd'].includes(k)) moveDir(1, 0);
+    });
+
+
+    regenBtn.onclick = () => {
+      generateMaze(GRID);
+      draw();
+    };
+
+    hintBtn.onclick = () => {
+      const next = findNextStep();
+      draw(next);
+    };
+
+    playAgainBtn.onclick = () => {
+      hideWinPopup();
+      generateMaze(GRID);
+      draw();
+    };
+
+    closePopupBtn.onclick = hideWinPopup;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    canvas.addEventListener("touchstart", (e) => {
+      const t = e.touches[0];
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+    });
+
+    canvas.addEventListener("touchend", (e) => {
+      const t = e.changedTouches[0];
+      let dx = t.clientX - touchStartX;
+      let dy = t.clientY - touchStartY;
+
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+
+      // detect dominant direction
+      if (Math.max(absX, absY) < 25) return; // too small → ignore
+
+      if (absX > absY) {
+        // horizontal swipe
+        if (dx > 0) moveDir(1, 0);   // RIGHT
+        else moveDir(-1, 0);        // LEFT
+      } else {
+        // vertical swipe
+        if (dy > 0) moveDir(0, 1);   // DOWN
+        else moveDir(0, -1);        // UP
+      }
+    });
+
+    fitCanvas();
+    generateMaze(GRID);
+    updateBestUI();
     draw();
-    if(player.x===goal.x&&player.y===goal.y){
-      setTimeout(()=>{alert('✨ Maze cleared! Calm mind achieved.');generateMazeAndDraw();},200);
-    }
-  }
-}
-
-function findNextStep(){
-  // BFS to find next step only
-  const q=[player];
-  const parent=Array(GRID).fill().map(()=>Array(GRID).fill(null));
-  const dirs=[[0,1],[1,0],[0,-1],[-1,0]];
-  parent[player.y][player.x]='start';
-  while(q.length){
-    const cur=q.shift();
-    if(cur.x===goal.x && cur.y===goal.y) break;
-    for(const [dx,dy] of dirs){
-      const nx=cur.x+dx, ny=cur.y+dy;
-      if(canMoveTo(nx,ny)&&!parent[ny][nx]){
-        parent[ny][nx]=cur;
-        q.push({x:nx,y:ny});
-      }
-    }
-  }
-  // backtrack one step
-  let cur={x:goal.x,y:goal.y};
-  if(!parent[cur.y][cur.x]) return null;
-  while(parent[cur.y][cur.x]!=='start'){
-    const prev=parent[cur.y][cur.x];
-    if(prev.x===player.x && prev.y===player.y) return cur;
-    cur=prev;
-  }
-  return null;
-}
-
-function draw(hint=null){
-  ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
-  ctx.fillStyle='rgba(255,255,255,0.08)';
-  for(let y=0;y<GRID;y++){
-    for(let x=0;x<GRID;x++){
-      if(grid[y][x]===1)
-        ctx.fillRect(x*cellSizePx,y*cellSizePx,cellSizePx,cellSizePx);
-    }
-  }
-
-  // goal glow
-  const gx=goal.x*cellSizePx+cellSizePx/2, gy=goal.y*cellSizePx+cellSizePx/2;
-  ctx.beginPath();
-  const grad=ctx.createRadialGradient(gx,gy,2,gx,gy,cellSizePx*0.8);
-  grad.addColorStop(0,'#00ffc6');
-  grad.addColorStop(1,'transparent');
-  ctx.fillStyle=grad;
-  ctx.arc(gx,gy,cellSizePx*0.6,0,Math.PI*2);
-  ctx.fill();
-
-  // hint (only next step highlight)
-  if(hint){
-    ctx.beginPath();
-    ctx.fillStyle='rgba(0,255,255,0.4)';
-    ctx.arc(hint.x*cellSizePx+cellSizePx/2,hint.y*cellSizePx+cellSizePx/2,cellSizePx*0.3,0,Math.PI*2);
-    ctx.fill();
-  }
-
-  // player
-  const px=player.x*cellSizePx+cellSizePx/2, py=player.y*cellSizePx+cellSizePx/2;
-  ctx.beginPath();
-  ctx.fillStyle='#ffffff';
-  ctx.arc(px,py,cellSizePx*0.3,0,Math.PI*2);
-  ctx.fill();
-}
-
-function generateMazeAndDraw(){
-  generateMaze(GRID);
-  fitCanvas();
-  draw();
-}
-
-window.addEventListener('resize', ()=>{fitCanvas();draw();});
-
-window.addEventListener('keydown', (e)=>{
-  const key=e.key.toLowerCase();
-  if(['arrowup','w'].includes(key)) moveDir(0,-1);
-  if(['arrowdown','s'].includes(key)) moveDir(0,1);
-  if(['arrowleft','a'].includes(key)) moveDir(-1,0);
-  if(['arrowright','d'].includes(key)) moveDir(1,0);
-});
-
-document.getElementById('upBtn').onclick=()=>moveDir(0,-1);
-document.getElementById('downBtn').onclick=()=>moveDir(0,1);
-document.getElementById('leftBtn').onclick=()=>moveDir(-1,0);
-document.getElementById('rightBtn').onclick=()=>moveDir(1,0);
-
-regenBtn.onclick=()=>generateMazeAndDraw();
-hintBtn.onclick=()=>{
-  const next=findNextStep();
-  draw(next);
-  setTimeout(()=>draw(),1200);
-};
-
-(function init(){ fitCanvas(); generateMazeAndDraw(); })();
-</script>
+  </script>
 </body>
+
 </html>

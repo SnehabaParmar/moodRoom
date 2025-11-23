@@ -26,8 +26,57 @@
       align-items: center;
       justify-content: center;
       padding: 18px;
+      flex-direction: column;
     }
 
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(11, 11, 12, 0.85);
+      backdrop-filter: blur(6px);
+      padding: 12px 18px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 1100px;
+      margin-bottom: 16px;
+      z-index: 10000;
+    }
+
+    .back-btn {
+      padding: 6px 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: linear-gradient(90deg, #ff4b4b, #ff7b7b);
+      color: #140202;
+      font-weight: 700;
+    }
+
+    .header-title {
+      font-weight: 800;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    @media (max-width: 900px) {
+      .header {
+        padding: 10px 12px;
+      }
+
+      .header-title {
+        font-size: 18px;
+      }
+
+      .back-btn {
+        padding: 5px 10px;
+        font-size: 14px;
+      }
+    }
+
+    /* WRAP */
     .wrap {
       width: 100%;
       max-width: 1100px;
@@ -72,12 +121,10 @@
       touch-action: manipulation;
     }
 
-    /* slight glow */
     #wall.glow {
       box-shadow: 0 16px 50px rgba(255, 40, 40, 0.16), inset 0 0 140px rgba(255, 10, 10, 0.04);
     }
 
-    /* inline-crack (SVG container) */
     .crack-svg {
       position: absolute;
       left: 0;
@@ -90,8 +137,9 @@
 
     .crack {
       position: absolute;
-      width: 160px;
-      height: 160px;
+      width: 220px;
+      /* bigger cracks */
+      height: 220px;
       pointer-events: none;
       transform-origin: center;
       z-index: 9999;
@@ -169,7 +217,7 @@
       color: #fff
     }
 
-    /* shards (explosion pieces) */
+    /* shards */
     .shard {
       position: absolute;
       width: 10px;
@@ -182,7 +230,6 @@
       z-index: 9998;
     }
 
-    /* flash overlay for explosion */
     #flash {
       position: fixed;
       left: 0;
@@ -214,6 +261,12 @@
 <body>
   <div id="flash"></div>
 
+  <!-- HEADER -->
+  <div class="header">
+    <button class="back-btn" onclick="history.back()">← Back</button>
+    <div class="header-title">Smash Wall</div>
+  </div>
+
   <div class="wrap">
     <div>
       <div class="card" style="display:flex;justify-content:space-between;align-items:center">
@@ -221,10 +274,6 @@
           <div class="title">Smash Wall — Glass Explosion</div>
           <div style="opacity:0.85;font-size:13px;margin-top:6px">Tap or swipe aggressively to release anger. The final
             break triggers a cinematic glass explosion.</div>
-        </div>
-        <div style="text-align:right">
-          <div style="opacity:0.7;font-size:12px">Mood</div>
-          <div style="font-weight:800">Anger 🔥</div>
         </div>
       </div>
 
@@ -265,19 +314,11 @@
         </div>
       </div>
 
-      <div class="card" style="margin-top:12px">
-        <div style="font-weight:800;margin-bottom:6px">Controls</div>
-        <div style="display:flex;gap:8px">
-          <!-- demo & auto removed as requested -->
-          <div style="opacity:0.7;font-size:13px">Demo controls removed</div>
-        </div>
-      </div>
     </div>
   </div>
 
   <script>
     (async function () {
-      // DOM
       const wall = document.getElementById('wall');
       const rageBar = document.getElementById('rageBar');
       const meterLabel = document.getElementById('meterLabel');
@@ -288,14 +329,12 @@
       const fullscreenBtn = document.getElementById('fullscreenBtn');
       const flash = document.getElementById('flash');
 
-      // local state (frontend-only)
       let SMASH_THRESHOLD = 28;
       let sessionHits = 0, combo = 0, smashCount = 0;
       let lastHitAt = 0;
-      const COMBO_WINDOW = 1200; // ms
+      const COMBO_WINDOW = 1200;
       let disabled = false;
 
-      // WebAudio (robust fallback)
       let audioCtx = null;
       function ensureAudio() {
         try {
@@ -306,49 +345,41 @@
           }
           if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => { });
           return audioCtx;
-        } catch (e) {
-          return null;
-        }
+        } catch (e) { return null; }
       }
 
       function playHitSound() {
         const ctx = ensureAudio();
         if (!ctx) return;
-        try {
-          const now = ctx.currentTime;
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          o.type = 'sine'; // safe waveform
-          o.frequency.setValueAtTime(260 + Math.random() * 80, now);
-          g.gain.setValueAtTime(0.02, now);
-          o.connect(g); g.connect(ctx.destination);
-          o.start(now); o.stop(now + 0.06);
-        } catch (e) { }
+        const now = ctx.currentTime;
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(260 + Math.random() * 80, now);
+        g.gain.setValueAtTime(0.02, now);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(now); o.stop(now + 0.06);
       }
 
       function playShatterSound() {
         const ctx = ensureAudio();
         if (!ctx) return;
-        try {
-          const now = ctx.currentTime;
-          const o1 = ctx.createOscillator();
-          const o2 = ctx.createOscillator();
-          const g = ctx.createGain();
-          o1.type = 'sine'; o2.type = 'sine';
-          o1.frequency.setValueAtTime(700, now);
-          o2.frequency.setValueAtTime(410, now);
-          g.gain.setValueAtTime(0.0035, now);
-          o1.connect(g); o2.connect(g); g.connect(ctx.destination);
-          o1.start(now); o2.start(now);
-          o1.stop(now + 0.9); o2.stop(now + 0.9);
-        } catch (e) { }
+        const now = ctx.currentTime;
+        const o1 = ctx.createOscillator();
+        const o2 = ctx.createOscillator();
+        const g = ctx.createGain();
+        o1.type = 'sine'; o2.type = 'sine';
+        o1.frequency.setValueAtTime(700, now);
+        o2.frequency.setValueAtTime(410, now);
+        g.gain.setValueAtTime(0.0035, now);
+        o1.connect(g); o2.connect(g); g.connect(ctx.destination);
+        o1.start(now); o2.start(now);
+        o1.stop(now + 0.9); o2.stop(now + 0.9);
       }
 
       function vibrate(pattern) { if (navigator.vibrate) navigator.vibrate(pattern); }
 
-      // ---------- UI update (local) ----------
       function updateUI() {
-        // avoid NaN and negative values
         sessionHits = Math.max(0, Math.floor(sessionHits));
         const pct = Math.min(100, Math.round((sessionHits / SMASH_THRESHOLD) * 100));
         rageBar.style.width = pct + '%';
@@ -358,17 +389,16 @@
         smashCountEl.textContent = smashCount;
       }
 
-      // ---------- create inline SVG crack ----------
       function createCrackAt(clientX, clientY) {
         const rect = wall.getBoundingClientRect();
-        const cx = clientX - rect.left;
-        const cy = clientY - rect.top;
+        const cx = Math.random() * rect.width;
+        const cy = Math.random() * rect.height;
 
         const wrapper = document.createElement('div');
         wrapper.className = 'crack';
         wrapper.style.left = cx + 'px';
         wrapper.style.top = cy + 'px';
-        wrapper.style.transform = 'translate(-50%,-50%) scale(0.6) rotate(-8deg)';
+        wrapper.style.transform = `translate(-50%,-50%) scale(${0.6 + Math.random() * 0.4}) rotate(${Math.random() * 40 - 20}deg)`;
 
         const svgns = 'http://www.w3.org/2000/svg';
         const svg = document.createElementNS(svgns, 'svg');
@@ -378,7 +408,7 @@
 
         const path = document.createElementNS(svgns, 'path');
         const p = [
-          `M ${20 + Math.random() * 30}, ${20 + Math.random() * 40}`,
+          `M ${30 + Math.random() * 30}, ${20 + Math.random() * 40}`,
           `L ${60 + Math.random() * 40}, ${40 + Math.random() * 60}`,
           `L ${90 + Math.random() * 60}, ${90 + Math.random() * 60}`,
           `L ${140 + Math.random() * 40}, ${140 + Math.random() * 40}`
@@ -391,7 +421,6 @@
         path.setAttribute('stroke-linejoin', 'round');
         svg.appendChild(path);
 
-        // a couple of tiny branches
         const branches = 1 + Math.floor(Math.random() * 3);
         for (let i = 0; i < branches; i++) {
           const bx = 50 + Math.random() * 90;
@@ -407,7 +436,6 @@
           svg.appendChild(b);
         }
 
-        // center dot
         const c = document.createElementNS(svgns, 'circle');
         c.setAttribute('cx', String(92 + Math.random() * 6 - 3));
         c.setAttribute('cy', String(82 + Math.random() * 6 - 3));
@@ -417,21 +445,15 @@
 
         wrapper.appendChild(svg);
         wall.appendChild(wrapper);
-
-        // ensure CSS animation starts
         void wrapper.offsetWidth;
-
-        // remove after animation
-        // setTimeout(() => { wrapper && wrapper.remove(); }, 950);
       }
 
-      // ---------- shards explosion ----------
       function explodeGlass() {
         playShatterSound();
         vibrate([40, 30, 60]);
         flash.style.opacity = '1';
         setTimeout(() => { flash.style.opacity = '0'; }, 220);
-        document.querySelectorAll('.crack, .shard').forEach(n=>n.remove());
+        document.querySelectorAll('.crack, .shard').forEach(n => n.remove());
 
         const rect = wall.getBoundingClientRect();
         const count = 40;
@@ -450,110 +472,42 @@
           const dx = (Math.random() - 0.5) * rect.width * 2;
           const dy = (Math.random() - 0.5) * rect.height * 2;
           const rot = (Math.random() - 0.5) * 1080;
-          s.style.transition = `transform ${900 + Math.random() * 500}ms cubic-bezier(.1,.8,.2,1), opacity ${900 + Math.random() * 400}ms`;
-          requestAnimationFrame(() => {
-            s.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg) scale(${0.6 + Math.random() * 1.4})`;
-            s.style.opacity = 0;
-          });
-          setTimeout(() => s.remove(), 1600 + Math.random() * 600);
-        }
-      }
-
-      // ---------- shake ----------
-      function shakeWall() {
-        wall.animate([
-          { transform: 'translate(0,0) rotate(0deg)' },
-          { transform: 'translate(-6px,4px) rotate(-2deg)' },
-          { transform: 'translate(6px,-4px) rotate(2deg)' },
-          { transform: 'translate(0,0) rotate(0deg)' }
-        ], { duration: 140, easing: 'cubic-bezier(.2,.8,.2,1)' });
-      }
-
-      // ---------- hit handling (frontend only) ----------
-      function registerHit(clientX, clientY) {
-        if (disabled) return;
-
-        // visuals
-        createCrackAt(clientX, clientY);
-        shakeWall();
-        playHitSound();
-        vibrate(18);
-
-        // combo logic
-        const now = Date.now();
-        if (lastHitAt && (now - lastHitAt) < COMBO_WINDOW) {
-          combo = Math.max(1, combo) + 1;
-        } else {
-          combo = 1;
-        }
-        lastHitAt = now;
-
-        // increase session hits
-        sessionHits += 1;
-        updateUI();
-
-        // final smash
-        if (sessionHits >= SMASH_THRESHOLD) {
-          disabled = true;
-          smashCount += 1;
-          updateUI();
-          // explosion visuals
-          explodeGlass();
-          // small scale animation
-          wall.animate([{ transform: 'scale(1)' }, { transform: 'scale(0.98)' }], { duration: 380 });
-          // reset after cinematic
+          s.style.transition = `transform ${900 + Math.random() * 500}ms cubic-bezier(.2,.9,.2,1),opacity ${500 + Math.random() * 300}ms ease`;
           setTimeout(() => {
-            sessionHits = 0;
-            combo = 0;
-            lastHitAt = 0;
-            updateUI();
-            disabled = false;
-          }, 900);
+            s.style.transform = `translate(${dx}px,${dy}px) rotate(${rot}deg)`;
+            s.style.opacity = 0;
+          }, 20);
+          setTimeout(() => s.remove(), 1400);
         }
+        sessionHits = 0; combo = 0; smashCount++;
+        updateUI();
       }
 
-      // attach events
-      wall.addEventListener('click', (ev) => registerHit(ev.clientX, ev.clientY));
-      wall.addEventListener('touchstart', (ev) => {
-        const t = ev.touches[0];
-        registerHit(t.clientX, t.clientY);
-      }, { passive: true });
-
-      // reset (frontend)
-      resetBtn.addEventListener('click', () => {
-        sessionHits = 0; combo = 0; smashCount = 0; lastHitAt = 0;
+      function hitWall(e) {
+        if (disabled) return;
+        const now = Date.now();
+        if (now - lastHitAt < 60) return;
+        lastHitAt = now;
+        sessionHits++;
+        combo++;
+        smashCount++;
+        playHitSound();
+        createCrackAt(e.clientX, e.clientY);
         updateUI();
-        // remove any remaining cracks/shards
-        document.querySelectorAll('.crack, .shard').forEach(n => n.remove());
+        if (sessionHits >= SMASH_THRESHOLD) explodeGlass();
+      }
+
+      wall.addEventListener('pointerdown', hitWall);
+      wall.addEventListener('touchstart', hitWall);
+
+      resetBtn.addEventListener('click', () => { sessionHits = 0; combo = 0; smashCount = 0; updateUI(); document.querySelectorAll('.crack, .shard').forEach(n => n.remove()); });
+      fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) wall.requestFullscreen?.();
+        else document.exitFullscreen?.();
       });
 
-      // fullscreen
-      fullscreenBtn.addEventListener('click', async () => {
-        try {
-          if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
-          else await document.exitFullscreen();
-        } catch (e) { }
-      });
-
-      // keyboard (space)
-      window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') {
-          const r = wall.getBoundingClientRect();
-          registerHit(r.left + r.width / 2, r.top + r.height / 2);
-          e.preventDefault();
-        }
-      });
-
-      // unlock audio on first user gesture (some browsers)
-      document.addEventListener('pointerdown', function unlockAudio() {
-        ensureAudio();
-        document.removeEventListener('pointerdown', unlockAudio);
-      }, { once: true });
-
-      // initialize UI
       updateUI();
-
-    })(); // IIFE
+    })();
   </script>
 </body>
 
