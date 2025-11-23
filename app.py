@@ -78,7 +78,7 @@ def get_suggestion():
     prompt = f"""
             You are a kind, supportive friend.
             The person just said: "{text}" and they are feeling {emotion}.
-            Reply with 1–2 short, caring sentences that feel natural and comforting.
+            Reply with short, caring sentence that feel natural and comforting.
             """
 
     try:
@@ -157,6 +157,12 @@ def chat_with_ai():
     try:
         body = request.get_json()
         msg = body.get("message", "").strip()
+        text = body.get("text", "").strip()
+        emotion = body.get("emotion", " ").strip()
+
+        print("🔹 Received message:", msg)
+        print("🔹 Received emotion:", emotion)
+        print("🔹 Received detected text:", text)
 
         if not msg:
             return jsonify({"reply": "Please type something."})
@@ -168,10 +174,10 @@ def chat_with_ai():
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a friendly emotional support chatbot."},
+                {"role": "system","content": "You are a friendly emotional support chatbot. The person just said: \"" + text + "\" and they are feeling \"" + emotion + "\"."},
                 {"role": "user", "content": msg}
             ],
-            max_tokens=150
+            max_tokens=100
         )
 
         # 📌 FIX: Accessing new SDK response format

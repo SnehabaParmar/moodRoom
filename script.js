@@ -1,4 +1,8 @@
 window.onload = () => {
+  // -------------------- Global preview file path (uploaded PPT image) --------------------
+  // dev note: local file path provided for quick preview usage if needed
+  const PRESENTATION_PREVIEW = "/mnt/data/A_PowerPoint_presentation_slide_showcases_MoodRoom.png";
+
   // -------------------- Elements --------------------
   const emojis = document.querySelectorAll('#emoji-container .emoji');
   const startBtn = document.getElementById('start-btn');
@@ -29,7 +33,16 @@ window.onload = () => {
   const chatInput = document.getElementById('chat-input');
   const chatSend = document.getElementById('chat-send');
 
+  const gamesBtn = document.getElementById("games-floating-btn");
+
   let mediaRecorder, audioChunks = [];
+
+  // -------------------- Globals for detected values --------------------
+  let globalDetectedText = "";
+  let globalEmotion = "";
+
+  // For typing dots animation setInterval handle
+  let typingIntervalHandle = null;
 
   // -------------------- Emoji Animation --------------------
   emojis.forEach((emoji, i) => {
@@ -62,6 +75,7 @@ window.onload = () => {
       promptBox.style.pointerEvents = 'auto';
       promptBox.classList.remove('opacity-0');
       promptBox.classList.add('transition-opacity', 'duration-1000', 'opacity-100');
+      inputField.focus();
     }, 1200);
   });
 
@@ -98,7 +112,9 @@ window.onload = () => {
 
       mediaRecorder.start();
       setTimeout(() => {
-        mediaRecorder.stop();
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+          mediaRecorder.stop();
+        }
         stream.getTracks().forEach((t) => t.stop());
       }, 8000);
     } catch (err) {
@@ -118,16 +134,26 @@ window.onload = () => {
     voicePopup.classList.add('hidden');
   });
 
+  // -------------------- Helper: small UI utility --------------------
+  function setButtonLoading(btn, isLoading, textWhenDone = "Submit") {
+    btn.disabled = isLoading;
+    if (isLoading) {
+      btn.dataset.origText = btn.innerText;
+      btn.innerText = "Analyzing...";
+    } else {
+      btn.innerText = textWhenDone;
+    }
+  }
+
   // -------------------- Mood Detection & Result --------------------
-  submitBtn.addEventListener('click', async () => {
+  async function handleDetectEmotion() {
     const moodText = inputField.value.trim();
     if (!moodText) {
       alert('Please enter or speak something first!');
       return;
     }
 
-    submitBtn.disabled = true;
-    submitBtn.innerText = 'Analyzing...';
+    setButtonLoading(submitBtn, true, "Submit");
 
     try {
       const res = await fetch('http://localhost:5000/detect-emotion', {
@@ -136,8 +162,14 @@ window.onload = () => {
         body: JSON.stringify({ text: moodText })
       });
       const data = await res.json();
-      const emotion = data.emotion ? data.emotion.toLowerCase() : 'neutral';
 
+      // store globally for chat usage
+      globalDetectedText = moodText;
+      globalEmotion = (data.emotion ? data.emotion.toLowerCase() : 'neutral');
+
+      const emotion = globalEmotion;
+
+      // get suggestion (optional)
       let suggestionText = "Thinking of something nice for you...";
       try {
         const suggestionRes = await fetch('http://localhost:5000/get-suggestion', {
@@ -168,6 +200,7 @@ window.onload = () => {
 
       applyTheme(emotion);
 
+      // Show result
       promptBox.style.display = 'none';
       welcomeSection.style.display = 'none';
       resultSection.style.display = 'flex';
@@ -181,12 +214,27 @@ window.onload = () => {
         resultSection.style.transform = 'translateY(0)';
       }, 50);
 
+      // focus chat input so user can chat immediately
+      setTimeout(() => {
+        if (chatSection.style.display === 'flex') chatInput.focus();
+      }, 500);
+
     } catch (err) {
       console.error('Emotion detection failed:', err);
       alert('Error detecting emotion. Please try again.');
     } finally {
-      submitBtn.disabled = false;
-      submitBtn.innerText = 'Submit';
+      setButtonLoading(submitBtn, false, "Submit");
+    }
+  }
+
+  // Detect on submit click
+  submitBtn.addEventListener('click', handleDetectEmotion);
+
+  // -------------------- Enter-to-Detect Emotion --------------------
+  inputField.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleDetectEmotion();
     }
   });
 
@@ -212,6 +260,7 @@ window.onload = () => {
     resultSection.style.display = 'none';
     chatSection.style.display = 'flex';
     chatIcon.style.display = 'none';
+    chatInput.focus();
   }
 
   function backToResult() {
@@ -259,22 +308,22 @@ window.onload = () => {
 
   // -------------------- CHAT SYSTEM WITH OPENAI BACKEND --------------------
 
-  // Add message (user → right, AI → left)
+  // Add message (user → right, AI → left) with animation classes
   function addMessage(sender, text) {
     const msg = document.createElement("div");
-    msg.classList.add("w-full", "my-2", "flex");
+    msg.classList.add("w-full", "my-2", "flex", "fade-in");
 
     if (sender === "user") {
       msg.classList.add("justify-end");
       msg.innerHTML = `
-        <div class="max-w-[70%] bg-indigo-500 text-white px-4 py-2 rounded-xl rounded-br-none">
-          ${text}
+        <div class="max-w-[70%] bg-indigo-500 text-white px-4 py-2 rounded-xl rounded-br-none shadow-md scale-in">
+          ${escapeHtml(text)}
         </div>`;
     } else {
       msg.classList.add("justify-start");
       msg.innerHTML = `
-        <div class="max-w-[70%] bg-black/20 backdrop-blur-md text-white px-4 py-2 rounded-xl rounded-bl-none">
-          ${text}
+        <div class="max-w-[70%] bg-black/20 backdrop-blur-md text-white px-4 py-2 rounded-xl rounded-bl-none shadow-md scale-in">
+          ${escapeHtml(text)}
         </div>`;
     }
 
@@ -282,7 +331,55 @@ window.onload = () => {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  // Send message to Flask backend
+  // Sanitize simple HTML in messages to avoid injection
+  function escapeHtml(unsafe) {
+    return unsafe
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  // -------------------- Typing indicator --------------------
+  function showTyping() {
+    // don't duplicate typing bubble
+    if (document.getElementById("typing-bubble")) return;
+
+    const typingBubble = document.createElement("div");
+    typingBubble.id = "typing-bubble";
+    typingBubble.classList.add("w-full", "my-2", "flex", "justify-start");
+
+    typingBubble.innerHTML = `
+      <div class="max-w-[40%] bg-black/20 backdrop-blur-md text-white px-4 py-2 rounded-xl rounded-bl-none shadow-md typing-bubble">
+        <span class="typing-dot">●</span>
+        <span class="typing-dot">●</span>
+        <span class="typing-dot">●</span>
+      </div>
+    `;
+
+    chatMessages.appendChild(typingBubble);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // animate dots via JS (fallback if CSS not present)
+    const dots = typingBubble.querySelectorAll('.typing-dot');
+    let i = 0;
+    typingIntervalHandle = setInterval(() => {
+      dots.forEach((d, idx) => d.style.opacity = (idx === i ? '1' : '0.25'));
+      i = (i + 1) % dots.length;
+    }, 350);
+  }
+
+  function hideTyping() {
+    const el = document.getElementById("typing-bubble");
+    if (el) el.remove();
+    if (typingIntervalHandle) {
+      clearInterval(typingIntervalHandle);
+      typingIntervalHandle = null;
+    }
+  }
+
+  // -------------------- Chat Send Handler (sends message + previous text + emotion) --------------------
   chatSend.addEventListener("click", async () => {
     const message = chatInput.value.trim();
     if (!message) return;
@@ -290,25 +387,57 @@ window.onload = () => {
     addMessage("user", message);
     chatInput.value = "";
 
+    // show typing indicator
+    showTyping();
+
     try {
       const res = await fetch("http://localhost:5000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({
+          message,
+          previousText: globalDetectedText,
+          emotion: globalEmotion
+        }),
       });
 
       const data = await res.json();
-      addMessage("ai", data.reply || "No response");
+
+      // simulate AI thinking time for realism
+      setTimeout(() => {
+        hideTyping();
+        addMessage("ai", data.reply || "No response");
+      }, 650); // ~650ms delay
+
     } catch (err) {
+      hideTyping();
       console.error(err);
       addMessage("ai", "⚠️ Error connecting to AI server.");
     }
   });
 
-  const gamesBtn = document.getElementById("games-floating-btn");
-
-  gamesBtn.addEventListener("click", () => {
-    window.location.href = "games.html  "; // change to your actual games page
+  // -------------------- Enter-to-send chat message --------------------
+  chatInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      chatSend.click();
+    }
   });
 
+  // -------------------- Games button --------------------
+  gamesBtn.addEventListener("click", () => {
+    window.location.href = "games.html"; // change to your actual games page
+  });
+
+  // -------------------- Helpful debug: click to preview PPT image (optional) --------------------
+  // you can remove this later. It's useful to quickly view the generated PPT preview image.
+  const previewBtn = document.getElementById("preview-ppt-btn");
+  if (previewBtn) {
+    previewBtn.addEventListener('click', () => {
+      // opens a new tab to preview the generated PPT image from local path
+      window.open(PRESENTATION_PREVIEW, "_blank");
+    });
+  }
+
+  // -------------------- End of onload -------------------- 
 };

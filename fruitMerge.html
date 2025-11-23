@@ -3,345 +3,221 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Emoji Merge — Basic Prototype</title>
+  <title>Smash Merge — Relax & Merge</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
   <style>
     html,body { height:100%; margin:0; -webkit-tap-highlight-color: transparent; }
     body {
-      display:flex; align-items:center; justify-content:center;
-      background: linear-gradient(180deg,#dff6ff 0%, #fff6fb 100%);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      padding: 24px;
+      display:flex; flex-direction:column; align-items:center; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      padding: 16px; background: linear-gradient(180deg,#dff6ff 0%, #fff6fb 100%);
     }
-    .board-wrap {
-      width: min(92vw, 520px);
-      max-width: 520px;
-      background: rgba(255,255,255,0.92);
-      border-radius: 12px;
-      padding: 12px;
-      box-shadow: 0 12px 40px rgba(2,6,23,0.08);
-      position: relative;
-    }
-    canvas { display:block; width:100%; border-radius:8px; background: transparent; touch-action:none; }
+    .header { width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .backBtn { background:#e5e7eb; padding:6px 12px; border-radius:10px; font-weight:600; cursor:pointer; transition:0.2s; }
+    .backBtn:hover { background:#d1d5db; }
+    h2 { font-size:1.5rem; font-weight:800; color:#111827; }
+    .board-wrap { width:320px; max-width:92vw; background: rgba(255,255,255,0.95); border-radius:16px; padding:16px; box-shadow: 0 12px 32px rgba(2,6,23,0.08); position: relative; }
+    canvas { display:block; width:100%; border-radius:12px; background: transparent; touch-action:none; }
     .hud { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; }
-    .pill { background:rgba(255,255,255,0.95); padding:8px 12px; border-radius:999px; box-shadow:0 6px 18px rgba(2,6,23,0.06); display:flex; gap:10px; align-items:center; }
-    .bigBtn { padding:8px 12px; border-radius:10px; background: #0ea5e9; color:white; border:none; font-weight:600; cursor:pointer; }
-    .game-over { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.45); color:white; font-size:18px; border-radius:8px; display:none; z-index:40; }
-    #nextIndicator { display:block; width:42px; height:42px; border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+    .pill { background: rgba(255,255,255,0.85); padding:6px 12px; border-radius:999px; box-shadow:0 4px 12px rgba(2,6,23,0.06); display:flex; gap:6px; align-items:center; font-size:12px; color:#0f172a; }
+    .bigBtn { padding:6px 12px; border-radius:10px; background: #0ea5e9; color:white; border:none; font-weight:600; cursor:pointer; transition:0.2s; }
+    .bigBtn:hover { background:#0284c7; }
+    .game-over { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.45); color:white; font-size:18px; border-radius:12px; display:none; z-index:40; flex-direction:column; gap:12px; }
+    #nextIndicator { display:flex; align-items:center; justify-content:center; font-size:20px; }
+    .sequence { display:flex; justify-content:center; gap:8px; margin-top:8px; }
+    .sequence span { font-size:22px; }
+    p.footer { font-size:12px; text-align:center; color:#334155; margin-top:6px; }
   </style>
-
-  <!-- Matter.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
 <body>
+
+  <!-- Header -->
+  <div class="header">
+    <button class="backBtn" onclick="history.back()">Back</button>
+    <h2>Smash Merge</h2>
+    <div></div>
+  </div>
+
+  <!-- Game board -->
   <div class="board-wrap">
     <div class="hud">
-      <div style="display:flex; gap:10px; align-items:center;">
-        <div class="pill">
-          <div style="font-size:12px; color:#0f172a">Next</div>
-          <div id="nextIndicator" style="margin-left:6px;">🍎</div>
-        </div>
-        <div class="pill">
-          <div style="font-size:12px;color:#0f172a">Score</div>
-          <div id="scoreDisplay" style="font-weight:700; margin-left:6px;">0</div>
-        </div>
+      <div class="pill">
+        <div>Next</div>
+        <div id="nextIndicator">🍎</div>
       </div>
-      <div>
-        <button id="restartBtn" class="bigBtn">Restart</button>
+      <div class="pill">
+        <div>Score</div>
+        <div id="scoreDisplay" style="font-weight:700;">0</div>
       </div>
+      <button id="restartBtn" class="bigBtn">Restart</button>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
-    <div id="gameOver" class="game-over">Game Over — <button id="playAgain" class="bigBtn" style="margin-left:12px;">Play Again</button></div>
-    <p style="font-size:12px; margin-top:8px; text-align:center; color:#334155;">Tap / Click inside the box to drop the next emoji. Move before dropping by tapping different horizontal positions.</p>
+    <div class="sequence" id="sequenceDisplay"></div>
+
+    <div id="gameOver" class="game-over">
+      Game Over
+      <button id="playAgain" class="bigBtn">Play Again</button>
+    </div>
+
+    <p class="footer">
+      Tap / Click inside the box to drop the next fruit. Move horizontally by tapping different positions.
+    </p>
   </div>
 
 <script>
 (() => {
-  // Matter aliases
   const { Engine, World, Bodies, Events, Body, Composite } = Matter;
 
-  // Game configuration
   const FRUITS = [
-    { emoji: '🍎', radius: 18, score: 1 },
-    { emoji: '🍊', radius: 22, score: 3 },
-    { emoji: '🍋', radius: 26, score: 6 },
-    { emoji: '🍉', radius: 32, score: 12 },
-    { emoji: '🍇', radius: 38, score: 20 },
+    { emoji:'🍎', radius:18, score:1 },
+    { emoji:'🍊', radius:22, score:3 },
+    { emoji:'🍋', radius:26, score:6 },
+    { emoji:'🍉', radius:32, score:12 },
+    { emoji:'🍇', radius:38, score:20 },
   ];
-  const DROP_DELAY_MS = 450;       // minimal delay to avoid instant stacking problems
-  const GAME_OVER_RATIO = 0.12;    // top 12% area is "danger" zone
-  const WALL_THICKNESS = 12;
+  const DROP_DELAY_MS = 400;
+  const GAME_OVER_RATIO = 0.12;
+  const WALL_THICKNESS = 10;
 
-  // DOM
   const canvas = document.getElementById('gameCanvas');
   const nextIndicator = document.getElementById('nextIndicator');
   const scoreDisplay = document.getElementById('scoreDisplay');
   const restartBtn = document.getElementById('restartBtn');
   const gameOverEl = document.getElementById('gameOver');
   const playAgainBtn = document.getElementById('playAgain');
+  const sequenceDisplay = document.getElementById('sequenceDisplay');
 
-  // State
-  let engine = null;
-  let world = null;
-  let animationId = null;
-  let canvasW = 400, canvasH = 600;
-  let nextIndex = 0;
-  let isDropping = false;
-  let score = 0;
-  let isGameOver = false;
+  let engine=null, world=null, animationId=null, canvasW=320, canvasH=450;
+  let nextIndex=0, isDropping=false, score=0, isGameOver=false;
+  let upcoming=[0,1,2]; // sequence for display
 
-  // Initialize/responsive sizing
-  function resizeCanvasToContainer() {
+  function resizeCanvas() {
     const rect = canvas.parentElement.getBoundingClientRect();
-    canvasW = rect.width - 0; // fill container width
-    // keep tall aspect
-    canvasH = Math.max(420, Math.floor(rect.width * 1.33));
+    canvasW = rect.width;
+    canvasH = 450; // fixed smaller size
     canvas.width = canvasW;
     canvas.height = canvasH;
   }
 
-  // Create a fruit body
   function createFruit(x, y, idx) {
     const f = FRUITS[idx];
-    const body = Bodies.circle(x, y, f.radius, {
-      label: 'fruit',
-      restitution: 0.25,
-      friction: 0.6,
-      frictionAir: 0.02,
-      density: 0.001 * (f.radius),
-    });
-    body.render = { fillStyle: '#fff' };
+    const body = Bodies.circle(x, y, f.radius, { label:'fruit', restitution:0.25, friction:0.6, frictionAir:0.02, density:0.001*f.radius });
     body.emojiIndex = idx;
     body.circleRadius = f.radius;
     return body;
   }
 
-  // Draw loop - custom renderer
   function draw() {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0,0,canvasW,canvasH);
 
-    // background
     const g = ctx.createLinearGradient(0,0,0,canvasH);
-    g.addColorStop(0, '#FEF3C7');
-    g.addColorStop(0.95, '#FEF3C7');
-    g.addColorStop(1, '#FBBF24');
-    ctx.fillStyle = g;
-    ctx.fillRect(0,0,canvasW,canvasH);
+    g.addColorStop(0,'#FEF3C7'); g.addColorStop(0.95,'#FEF3C7'); g.addColorStop(1,'#FBBF24');
+    ctx.fillStyle=g; ctx.fillRect(0,0,canvasW,canvasH);
 
-    // danger zone
-    const dangerH = canvasH * GAME_OVER_RATIO;
-    ctx.fillStyle = 'rgba(248,113,113,0.14)';
-    ctx.fillRect(0,0,canvasW,dangerH);
+    const dangerH = canvasH*GAME_OVER_RATIO;
+    ctx.fillStyle='rgba(248,113,113,0.14)'; ctx.fillRect(0,0,canvasW,dangerH);
 
-    // walls
-    ctx.fillStyle = '#D69E2E';
+    ctx.fillStyle='#D69E2E';
     ctx.fillRect(0,0,WALL_THICKNESS,canvasH);
-    ctx.fillRect(canvasW - WALL_THICKNESS, 0, WALL_THICKNESS, canvasH);
-    ctx.fillRect(0, canvasH - WALL_THICKNESS, canvasW, WALL_THICKNESS);
+    ctx.fillRect(canvasW-WALL_THICKNESS,0,WALL_THICKNESS,canvasH);
+    ctx.fillRect(0,canvasH-WALL_THICKNESS,canvasW,WALL_THICKNESS);
 
-    // draw all fruit bodies
     const bodies = Composite.allBodies(world);
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    for (let i=0;i<bodies.length;i++){
-      const b = bodies[i];
-      if (b.label === 'fruit') {
-        const idx = b.emojiIndex;
-        const e = FRUITS[idx].emoji;
-        const r = b.circleRadius;
-        // circle
-        ctx.beginPath();
-        ctx.fillStyle = '#fff';
-        ctx.arc(b.position.x, b.position.y, r, 0, Math.PI*2);
-        ctx.fill();
-
-        // emoji
-        // choose font size relative to radius
-        ctx.font = `${Math.round(r*1.2)}px serif`;
-        ctx.fillText(e, b.position.x, b.position.y + 2);
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    for(let b of bodies){
+      if(b.label==='fruit'){
+        const f = FRUITS[b.emojiIndex];
+        ctx.beginPath(); ctx.fillStyle='#fff';
+        ctx.arc(b.position.x,b.position.y,f.circleRadius,0,Math.PI*2); ctx.fill();
+        ctx.font = `${Math.round(f.circleRadius*1.2)}px serif`;
+        ctx.fillText(f.emoji,b.position.x,b.position.y+1);
       }
     }
   }
 
-  // Game loop: update physics then draw
-  function loop(time) {
-    if (isGameOver) return;
-    Engine.update(engine, 1000/60);
-    draw();
-    checkGameOver();
+  function loop(){
+    if(isGameOver) return;
+    Engine.update(engine,1000/60);
+    draw(); checkGameOver();
     animationId = requestAnimationFrame(loop);
   }
 
-  // Set next fruit index and update HUD
-  function setNextFruit() {
-    // pick from the simpler pool so merges are reachable
-    nextIndex = Math.floor(Math.random() * Math.min(3, FRUITS.length));
+  function setNextFruit(){
+    upcoming = upcoming.slice(1);
+    while(upcoming.length<3){
+      upcoming.push(Math.floor(Math.random()*FRUITS.length));
+    }
+    nextIndex = upcoming[0];
     nextIndicator.textContent = FRUITS[nextIndex].emoji;
-    nextIndicator.style.fontSize = (FRUITS[nextIndex].radius * 1.2) + 'px';
+    sequenceDisplay.innerHTML = upcoming.map(i=>`<span>${FRUITS[i].emoji}</span>`).join('');
   }
 
-  // Drop fruit at x (container-relative x)
-  function dropAt(clientX) {
-    if (isGameOver || isDropping) return;
-    isDropping = true;
-    // constrain X within walls
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.max(WALL_THICKNESS + FRUITS[nextIndex].radius, Math.min(rect.width - WALL_THICKNESS - FRUITS[nextIndex].radius, clientX - rect.left));
-    const y = -10; // spawn slightly above view
-    const fruit = createFruit(x, y, nextIndex);
-    World.add(world, fruit);
-
-    // after short delay allow next drop (so two fruits don't spawn stacked on same frame)
-    setTimeout(() => {
-      isDropping = false;
-      setNextFruit();
-    }, DROP_DELAY_MS);
+  function dropAt(clientX){
+    if(isGameOver || isDropping) return;
+    isDropping=true;
+    const rect=canvas.getBoundingClientRect();
+    const x=Math.max(WALL_THICKNESS+FRUITS[nextIndex].radius, Math.min(rect.width-WALL_THICKNESS-FRUITS[nextIndex].radius, clientX-rect.left));
+    const y=-10;
+    World.add(world, createFruit(x,y,nextIndex));
+    setTimeout(()=>{ isDropping=false; setNextFruit(); }, DROP_DELAY_MS);
   }
 
-  // Merge logic: when two fruits of same index collide we create merged one
-  function tryMerge(bodyA, bodyB) {
-    if (!bodyA || !bodyB) return;
-    if (bodyA.label !== 'fruit' || bodyB.label !== 'fruit') return;
-    if (bodyA.emojiIndex !== bodyB.emojiIndex) return;
-    const idx = bodyA.emojiIndex;
-    if (idx >= FRUITS.length - 1) return; // can't upgrade beyond max
-
-    // compute midpoint
-    const x = (bodyA.position.x + bodyB.position.x) / 2;
-    const y = (bodyA.position.y + bodyB.position.y) / 2;
-
-    // remove existing bodies (guarded)
-    try {
-      World.remove(world, bodyA);
-      World.remove(world, bodyB);
-    } catch (e) { /* ignore */ }
-
-    // spawn merged body
-    const merged = createFruit(x, y, idx + 1);
-    // give merged some inherited momentum
-    Body.setVelocity(merged, {
-      x: (bodyA.velocity.x + bodyB.velocity.x) / 2,
-      y: (bodyA.velocity.y + bodyB.velocity.y) / 2
-    });
+  function tryMerge(a,b){
+    if(a.label!=='fruit'||b.label!=='fruit'||a.emojiIndex!==b.emojiIndex) return;
+    const idx=a.emojiIndex;
+    if(idx>=FRUITS.length-1) return;
+    const x=(a.position.x+b.position.x)/2;
+    const y=(a.position.y+b.position.y)/2;
+    try{ World.remove(world,a); World.remove(world,b); }catch(e){}
+    const merged=createFruit(x,y,idx+1);
+    Body.setVelocity(merged,{x:(a.velocity.x+b.velocity.x)/2,y:(a.velocity.y+b.velocity.y)/2});
     World.add(world, merged);
-
-    // award score for merge
-    score += FRUITS[idx+1].score;
-    scoreDisplay.textContent = score;
+    score+=FRUITS[idx+1].score; scoreDisplay.textContent=score;
   }
 
-  // Game over detection: if any fruit rests high in danger zone and nearly stopped
-  function checkGameOver() {
-    if (isGameOver) return;
-    const dangerH = canvasH * GAME_OVER_RATIO;
-    const bodies = Composite.allBodies(world);
-    for (let i=0;i<bodies.length;i++){
-      const b = bodies[i];
-      if (b.label === 'fruit') {
-        const topY = b.position.y - b.circleRadius;
-        const speed = Math.sqrt(b.velocity.x*b.velocity.x + b.velocity.y*b.velocity.y);
-        if (topY < dangerH && speed < 0.08) {
-          // Game over
-          isGameOver = true;
-          showGameOver();
-          return;
-        }
+  function checkGameOver(){
+    if(isGameOver) return;
+    const dangerH = canvasH*GAME_OVER_RATIO;
+    for(let b of Composite.allBodies(world)){
+      if(b.label==='fruit'){
+        const topY = b.position.y-b.circleRadius;
+        const speed = Math.sqrt(b.velocity.x**2+b.velocity.y**2);
+        if(topY<dangerH && speed<0.08){ isGameOver=true; gameOverEl.style.display='flex'; cancelAnimationFrame(animationId); return; }
       }
     }
   }
 
-  function showGameOver() {
-    gameOverEl.style.display = 'flex';
+  function setupEngine(){
+    engine = Engine.create(); engine.world.gravity.y=1.2; world=engine.world;
+    const walls = [
+      Bodies.rectangle(WALL_THICKNESS/2,canvasH/2,WALL_THICKNESS,canvasH,{isStatic:true}),
+      Bodies.rectangle(canvasW-WALL_THICKNESS/2,canvasH/2,WALL_THICKNESS,canvasH,{isStatic:true}),
+      Bodies.rectangle(canvasW/2,canvasH-WALL_THICKNESS/2,canvasW,WALL_THICKNESS,{isStatic:true})
+    ];
+    World.add(world,walls);
+    Events.on(engine,'collisionStart',ev=>{ ev.pairs.forEach(pair=>{ tryMerge(pair.bodyA,pair.bodyB); }); });
+  }
+
+  function init(){
     cancelAnimationFrame(animationId);
+    isDropping=false; isGameOver=false; score=0; scoreDisplay.textContent='0';
+    gameOverEl.style.display='none';
+    resizeCanvas();
+    if(engine){ try{ World.clear(engine.world); Engine.clear(engine); }catch(e){} }
+    setupEngine(); upcoming=[0,1,2]; setNextFruit();
+    animationId=requestAnimationFrame(loop);
   }
 
-  // Init Matter engine and walls, hook collision handlers
-  function setupEngine() {
-    engine = Engine.create();
-    engine.world.gravity.y = 1.2; // tune gravity
-    world = engine.world;
+  canvas.parentElement.addEventListener('click',ev=>dropAt(ev.clientX));
+  canvas.addEventListener('click',ev=>dropAt(ev.clientX));
+  restartBtn.addEventListener('click',init);
+  playAgainBtn.addEventListener('click',init);
+  window.addEventListener('resize',init);
 
-    // Walls (static)
-    const left = Bodies.rectangle(WALL_THICKNESS/2, canvasH/2, WALL_THICKNESS, canvasH, { isStatic: true, label: 'wall' });
-    const right = Bodies.rectangle(canvasW - WALL_THICKNESS/2, canvasH/2, WALL_THICKNESS, canvasH, { isStatic: true, label: 'wall' });
-    const bottom = Bodies.rectangle(canvasW/2, canvasH - WALL_THICKNESS/2, canvasW, WALL_THICKNESS, { isStatic: true, label: 'wall' });
-    World.add(world, [left, right, bottom]);
-
-    // Collision merge listener
-    Events.on(engine, 'collisionStart', (ev) => {
-      const pairs = ev.pairs;
-      pairs.forEach(pair => {
-        const a = pair.bodyA, b = pair.bodyB;
-        // small guard: ensure both are fruits
-        if (a.label === 'fruit' && b.label === 'fruit' && a.emojiIndex === b.emojiIndex) {
-          // use small timeout so removal doesn't interfere with the engine step
-          setTimeout(() => {
-            // bodies might be removed or changed — check they still exist
-            tryMerge(a, b);
-          }, 0);
-        }
-      });
-    });
-  }
-
-  // Start/reset game
-  function init() {
-    // reset flags
-    cancelAnimationFrame(animationId);
-    isDropping = false;
-    isGameOver = false;
-    score = 0;
-    scoreDisplay.textContent = '0';
-    gameOverEl.style.display = 'none';
-
-    // sizing
-    resizeCanvasToContainer();
-
-    // clear previous engine/world
-    if (engine) {
-      try {
-        World.clear(engine.world);
-        Engine.clear(engine);
-      } catch(e){}
-    }
-
-    setupEngine();
-    setNextFruit();
-    animationId = requestAnimationFrame(loop);
-  }
-
-  // Event listeners
-  // click/tap inside container: drop at that horizontal position
-  canvas.parentElement.addEventListener('click', (ev) => {
-    if (isGameOver) return;
-    // compute X relative to canvas
-    const rect = canvas.getBoundingClientRect();
-    const x = ev.clientX;
-    dropAt(x);
-  });
-
-  // Also allow clicking directly on canvas
-  canvas.addEventListener('click', (ev) => {
-    if (isGameOver) return;
-    dropAt(ev.clientX);
-  });
-
-  // restart
-  restartBtn.addEventListener('click', init);
-  playAgainBtn.addEventListener('click', init);
-
-  // responsive: resize & re-init (keep simple)
-  window.addEventListener('resize', () => {
-    // re-init to resize canvas and walls
-    init();
-  });
-
-  // start
   init();
-
 })();
 </script>
 </body>
