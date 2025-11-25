@@ -1,70 +1,222 @@
-<style>
-  body.theme-active {
-    background: linear-gradient(120deg, #e0a370, #99e0ea, #fed7aa);
-    background-size: 200% 200%;
-    animation: joyMove 9s ease-in-out infinite;
-  }
+<!DOCTYPE html>
+<html lang="en">
 
-  @keyframes joyMove {
-    0% {
-      background-position: 0% 50%
-    }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Theme – Rainbow Abstract</title>
 
-    50% {
-      background-position: 100% 50%
-    }
+    <style>
+        body.theme-active {
+            /* background: linear-gradient(120deg, #FFDEE9, #B5FFFC, #FFF6BD, #FFD1DC); */
+            background:url("https://static.vecteezy.com/system/resources/thumbnails/012/887/922/small/rainbow-bokeh-soft-light-abstract-background-eps-10-illustration-bokeh-particles-background-decoration-vector.jpg") no-repeat center/cover;
+            background-size: 200% 200%;
+            animation: happyMove 12s ease-in-out infinite;
+        }
 
-    100% {
-      background-position: 0% 50%
-    }
-  }
+        @keyframes happyMove {
+            0% {
+                background-position: 0% 50%;
+            }
 
-  .confetti {
-    position: fixed;
-    bottom: 100%;
-    width: 8px;
-    height: 12px;
-    opacity: 0.95;
-    border-radius: 2px;
-    transform: rotate(10deg);
-    animation: confettiFall 4s linear forwards
-  }
+            50% {
+                background-position: 100% 50%;
+            }
 
-  @keyframes confettiFall {
-    0% {
-      transform: translateY(0) rotate(0)
-    }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
 
-    100% {
-      transform: translateY(120vh) rotate(600deg);
-      opacity: 0
-    }
-  }
+        #theme-animation-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
 
-  .glow {
-    position: fixed;
-    border-radius: 50%;
-    filter: blur(10px);
-    opacity: .7;
-  }
-</style>
+        .sphere {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fff, var(--color));
+            box-shadow: inset -10px -15px 25px rgba(0, 0, 0, 0.2), 0 0 25px rgba(255, 255, 255, 0.3);
+            animation: floatUp var(--speed) ease-in infinite;
+        }
 
+        @keyframes floatUp {
+            0% {
+                transform: translateY(120vh) scale(.9);
+                opacity: .8;
+            }
 
-<div id="theme-animation-container"></div>
+            50% {
+                opacity: 1;
+            }
 
+            100% {
+                transform: translateY(-20vh) scale(1.1);
+                opacity: 0;
+            }
+        }
 
-<script>
-  function startTheme() {
-    document.body.classList.add('theme-active');
-    window.__themeIntervals = window.__themeIntervals || [];
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 14px;
+            opacity: 0;
+            border-radius: 2px;
+            animation: confettiFall 1.4s ease-out forwards;
+        }
 
+        @keyframes confettiFall {
+            0% {
+                opacity: 1;
+                transform: translateY(-10px) rotate(0deg);
+            }
 
-    function createConfetti() { const el = document.createElement('div'); el.className = 'confetti'; el.style.left = Math.random() * 100 + 'vw'; el.style.background = ['#ff7b7b', '#ffd166', '#9ad3bc', '#ffd5e5'][Math.floor(Math.random() * 4)]; el.style.animationDuration = (3 + Math.random() * 2) + 's'; document.body.appendChild(el); setTimeout(() => el.remove(), 4500); }
-    function createGlow() { const el = document.createElement('div'); el.className = 'glow'; const size = Math.random() * 120 + 80; el.style.width = el.style.height = size + 'px'; el.style.left = Math.random() * 100 + 'vw'; el.style.top = Math.random() * 100 + 'vh'; el.style.background = 'radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0.05))'; el.style.opacity = 0.6; document.body.appendChild(el); setTimeout(() => el.remove(), 7000); }
+            70% {
+                opacity: 1;
+            }
 
+            100% {
+                opacity: 0;
+                transform: translateY(60px) rotate(200deg);
+            }
+        }
 
-    window.__themeIntervals.push(setInterval(createConfetti, 250));
-    window.__themeIntervals.push(setInterval(createGlow, 1200));
-  }
-  function stopTheme() { if (window.__themeIntervals) { window.__themeIntervals.forEach(i => clearInterval(i)); window.__themeIntervals = []; } document.body.classList.remove('theme-active'); }
-</script>
+        .heart {
+            position: absolute;
+            bottom: 0;
+            /* start from bottom */
+            font-size: 1.8rem;
+            filter: drop-shadow(0 0 8px rgb(247, 244, 85));
+            opacity: 0;
+            animation: heartFloat 5s ease-in-out forwards;
+        }
+
+        @keyframes heartFloat {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+                filter: drop-shadow(0 0 15px rgb(231, 247, 85));
+            }
+
+            60% {
+                transform: translateY(-50vh) scale(1.2) rotate(10deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-90vh) scale(0.8) rotate(-10deg);
+                opacity: 0;
+            }
+
+            /* max -90vh to stay visible */
+        }
+    </style>
+</head>
+
+<body>
+    <div id="theme-animation-container"></div>
+
+    <script>
+        // Sphere colors
+        const sphereColors = ["#ff6f91", "#ff9671", "#ffc75f", "#f9f871", "#a1eafb", "#b28dff", "#f6a6ff"];
+
+        // Keep track of all intervals
+        window.__themeIntervals = window.__themeIntervals || [];
+
+        function startTheme() {
+            stopTheme(); // Stop previous theme if any
+            document.body.classList.add('theme-active');
+
+            const container = document.getElementById('theme-animation-container');
+
+            // Sphere creation
+            function createSphere() {
+                const s = document.createElement("div");
+                s.className = "sphere";
+                const size = Math.random() * 10 + 40;
+                s.style.setProperty("--color", sphereColors[Math.floor(Math.random() * sphereColors.length)]);
+                s.style.setProperty("--speed", (10 + Math.random() * 4) + "s");
+                s.style.width = s.style.height = size + "px";
+                s.style.left = Math.random() * 90 + "vw";
+                container.appendChild(s);
+                setTimeout(() => s.remove(), 12000);
+            }
+
+            // Confetti burst
+            function burstConfetti() {
+                const colors = ["#fff", "#ffe7f3", "#fff6c7", "#e7e9ff"];
+                for (let i = 0; i < 18; i++) {
+                    const c = document.createElement("div");
+                    c.className = "confetti";
+                    const size = Math.random() * 6 + 6;
+                    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    c.style.width = size + "px";
+                    c.style.height = size * 1.4 + "px";
+                    c.style.left = (window.innerWidth / 2) + (Math.random() * 2000 - 1000) + "px";
+                    c.style.top = (window.innerHeight / 2) + (Math.random() * 1000 - 1000) + "px";
+                    container.appendChild(c);
+                    setTimeout(() => c.remove(), 10000);
+                }
+            }
+
+            // Hearts floating
+            // function createHeart() {
+            // const heart = document.createElement("div");
+            // heart.className = "heart";
+            // heart.textContent = "😇";
+            // heart.style.left = Math.random() * 100 + "vw";
+            // heart.style.fontSize = Math.random() * 20 + 20 + "px";
+            // heart.style.animationDuration = (4 + Math.random() * 2) + "s";
+            // container.appendChild(heart);
+            // setTimeout(() => heart.remove(), 6000);
+            // }
+
+            function createHeart() {
+                const heart = document.createElement("div");
+                heart.className = "heart";
+                heart.textContent = "😇";
+                heart.style.left = Math.random() * 90 + "vw"; // keep inside viewport
+                heart.style.fontSize = Math.random() * 20 + 20 + "px";
+                heart.style.animationDuration = (4 + Math.random() * 2) + "s";
+                heart.style.bottom = (Math.random() * 10) + "px"; // slight random bottom start
+                container.appendChild(heart);
+                setTimeout(() => heart.remove(), 6000);
+            }
+
+            // Start intervals
+            window.__themeIntervals.push(setInterval(createSphere, 700));
+            window.__themeIntervals.push(setInterval(burstConfetti, 200));
+            window.__themeIntervals.push(setInterval(createHeart, 700));
+
+            // Initial burst
+            createSphere();
+            burstConfetti();
+            createHeart();
+        }
+
+        function stopTheme() {
+            // Clear all intervals
+            if (window.__themeIntervals) {
+                window.__themeIntervals.forEach(i => clearInterval(i));
+                window.__themeIntervals = [];
+            }
+            // Remove all theme elements
+            const container = document.getElementById('theme-animation-container');
+            container.innerHTML = "";
+            document.body.classList.remove('theme-active');
+        }
+
+        // Example: auto-start
+        // startTheme();
+    </script>
+</body>
+
+</html>

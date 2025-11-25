@@ -1,138 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Fear Mood Theme</title>
-<style>
-body{
-    margin:0; height:100vh; overflow:hidden;
-    display:flex; justify-content:center; align-items:center;
-    font-family: "Poppins", sans-serif;
-    background: radial-gradient(circle at center, #0a0f21, #000000);
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fear Theme – Simple Replayable</title>
+    <style>
+        body.theme-active {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #0a0f21, #000);
+        }
 
-/* moving fog background */
-.fog{
-    position: absolute;
-    width:140%; height:140%;
-    background: url("https://i.ytimg.com/vi/GYa5IcAoo08/maxresdefault.jpg")no-repeat center/cover;
-    opacity:0.85;
-    animation: fogMove 20s linear infinite alternate;
-}
-@keyframes fogMove{
-    0%{transform:translate(-20%, -10%) scale(1.2);}
-    100%{transform:translate(-10%, -20%) scale(1.4);}
-}
+        #theme-animation-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
 
-/* ghost bubbles */
-.bubble{
-    position:absolute;
-    background:rgba(160,200,255,0.15);
-    border-radius:50%;
-    display:flex; justify-content:center; align-items:center;
-    font-size:30px;
-    animation: floatUp 9s linear forwards;
-    backdrop-filter: blur(6px);
-    color:white;
-    opacity:0;
-}
-@keyframes floatUp{
-    0%{transform:translateY(100vh) scale(0.7); opacity:0;}
-    30%{opacity:0.8;}
-    100%{transform:translateY(-15vh) scale(1.3); opacity:0;}
-}
+        .fog {
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            background: url("https://i.ytimg.com/vi/GYa5IcAoo08/maxresdefault.jpg") no-repeat center/cover;
+            opacity: 0.6;
+            animation: fogMove 20s linear infinite alternate;
+        }
 
-/* tiny glowing sparks */
-.spark{
-    position:absolute;
-    width:4px; height:4px;
-    background:#b3eafe;
-    border-radius:50%;
-    opacity:0.8;
-    animation: sparkMove 4s linear forwards;
-}
-@keyframes sparkMove{
-    0%{transform:translateY(100vh); opacity:0;}
-    20%{opacity:1;}
-    100%{transform:translateY(-120vh); opacity:0;}
-}
+        @keyframes fogMove {
+            0% { transform: translate(-20%, -10%) scale(1.2); }
+            100% { transform: translate(-10%, -20%) scale(1.4); }
+        }
 
-/* ghosts coming randomly */
-.ghost{
-    position:absolute;
-    font-size:50px;
-    opacity:0;
-    pointer-events:none;
-    animation: ghostMove 10s linear forwards;
-}
-@keyframes ghostMove{
-    0%{opacity:0; transform: translate(var(--startX), var(--startY)) scale(0.5);}
-    20%{opacity:0.8;}
-    80%{opacity:0.8;}
-    100%{opacity:0; transform: translate(var(--endX), var(--endY)) scale(1);}
-}
-</style>
+        .ghost {
+            position: absolute;
+            font-size: 40px;
+            opacity: 0;
+            pointer-events: none;
+            animation: ghostMove 8s linear forwards;
+        }
+
+        @keyframes ghostMove {
+            0% { opacity: 0; transform: translate(var(--startX), var(--startY)) scale(0.5); }
+            20% { opacity: 0.8; }
+            80% { opacity: 0.8; }
+            100% { opacity: 0; transform: translate(var(--endX), var(--endY)) scale(1); }
+        }
+
+        .spark {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #b3eafe;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: sparkMove 3s linear forwards;
+        }
+
+        @keyframes sparkMove {
+            0% { transform: translateY(100vh); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translateY(-120vh); opacity: 0; }
+        }
+    </style>
 </head>
+
 <body>
+    <div id="theme-animation-container"></div>
 
-<div class="fog"></div>
+    <script>
+        // Use a persistent global variable for intervals
+        window.__fearThemeIntervals = window.__fearThemeIntervals || [];
 
-<script>
-// Emojis for fear mood
-const fear = ["😱","👻","👀","😨","🕷️","😰"];
+        function startTheme() {
+            // STOP previous runs first to prevent double-stacking
+            stopTheme();
 
-// Ghosts appear from random side and disappear
-function ghost(){
-    const g = document.createElement("div");
-    g.className = "ghost";
-    g.textContent = fear[Math.floor(Math.random()*fear.length)];
+            document.body.classList.add("theme-active");
 
-    // Random start and end positions
-    const startX = (Math.random() > 0.5 ? '-10vw' : '110vw');
-    const endX = (Math.random() > 0.5 ? '110vw' : '-10vw');
-    const startY = Math.random()*80 + 'vh';
-    const endY = (Math.random()*80 + 'vh');
+            // *** FIX: Define container INSIDE the function so it grabs the fresh HTML element ***
+            const container = document.getElementById("theme-animation-container");
+            const fearEmojis = ["😱", "👻", "👀", "😨", "🕷️", "😰"];
 
-    g.style.setProperty('--startX', startX);
-    g.style.setProperty('--startY', startY);
-    g.style.setProperty('--endX', endX);
-    g.style.setProperty('--endY', endY);
-    g.style.animationDuration = (6 + Math.random()*6) + "s";
+            // Add fog
+            const fog = document.createElement("div");
+            fog.className = "fog";
+            container.appendChild(fog);
 
-    document.body.appendChild(g);
-    setTimeout(()=>g.remove(), 12000);
-}
+            // Ghost Function
+            function ghost() {
+                // Check if container still exists to prevent errors if theme stopped mid-animation
+                if (!document.getElementById("theme-animation-container")) return;
 
-// Ghosts spawn occasionally
-setInterval(ghost, 2000);
+                const g = document.createElement("div");
+                g.className = "ghost";
+                g.textContent = fearEmojis[Math.floor(Math.random() * fearEmojis.length)];
+                
+                g.style.setProperty("--startX", Math.random() > 0.5 ? "-10vw" : "110vw");
+                g.style.setProperty("--endX", Math.random() > 0.5 ? "110vw" : "-10vw");
+                g.style.setProperty("--startY", Math.random() * 80 + "vh");
+                g.style.setProperty("--endY", Math.random() * 80 + "vh");
+                g.style.animationDuration = (6 + Math.random() * 4) + "s";
+                
+                container.appendChild(g);
+                setTimeout(() => g.remove(), 10000);
+            }
 
-// Floating bubbles
-function bubble(){
-    const b=document.createElement("div");
-    b.className="bubble";
-    let size=Math.random()*80+40;
-    b.style.width=size+"px";
-    b.style.height=size+"px";
-    b.style.left=Math.random()*100+"vw";
-    b.style.animationDuration=(6+Math.random()*4)+"s";
-    b.textContent = fear[Math.floor(Math.random()*fear.length)];
-    document.body.appendChild(b);
-    setTimeout(()=>b.remove(),10000);
-}
-for(let i=0;i<6;i++){ setTimeout(bubble,i*100); }
-setInterval(bubble,500);
+            // Spark Function
+            function spark() {
+                if (!document.getElementById("theme-animation-container")) return;
 
-// Tiny glowing sparks
-function spark(){
-    const s=document.createElement("div");
-    s.className="spark";
-    s.style.left = Math.random()*100+"vw";
-    s.style.animationDuration=(2+Math.random()*3)+"s";
-    document.body.appendChild(s);
-    setTimeout(()=>s.remove(),5000);
-}
-setInterval(spark,300);
+                const s = document.createElement("div");
+                s.className = "spark";
+                s.style.left = Math.random() * 100 + "vw";
+                s.style.animationDuration = (2 + Math.random() * 2) + "s";
+                container.appendChild(s);
+                setTimeout(() => s.remove(), 4000);
+            }
 
-</script>
+            // Start Intervals
+            window.__fearThemeIntervals.push(setInterval(ghost, 1500));
+            window.__fearThemeIntervals.push(setInterval(spark, 400));
+
+            // Initial spawn
+            for (let i = 0; i < 5; i++) setTimeout(ghost, i * 300);
+        }
+
+        function stopTheme() {
+            // Clear Intervals
+            if (window.__fearThemeIntervals) {
+                window.__fearThemeIntervals.forEach(i => clearInterval(i));
+                window.__fearThemeIntervals = [];
+            }
+
+            // *** FIX: Get container afresh here too ***
+            const container = document.getElementById("theme-animation-container");
+            if (container) {
+                container.innerHTML = "";
+            }
+            document.body.classList.remove("theme-active");
+        }
+
+        // Uncomment for testing auto-start:
+        // startTheme();
+    </script>
 </body>
 </html>

@@ -79,6 +79,33 @@ window.onload = () => {
     }, 1200);
   });
 
+  function createSphere() {
+    const sphere = document.createElement("div");
+    sphere.classList.add("sphere");
+
+    const size = Math.random() * 120 + 60; // 60–180px
+    sphere.style.width = sphere.style.height = size + "px";
+
+    const colors = [
+      "rgba(255,130,255,0.395)",
+      "rgba(149,120,255,0.436)",
+      "rgba(255,199,140,0.402)",
+      "rgba(120,219,255,0.463)"
+    ];
+    sphere.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+    sphere.style.left = Math.random() * window.innerWidth + "px";
+    sphere.style.top = Math.random() * window.innerHeight + "px";
+    sphere.style.animationDuration = (10 + Math.random() * 5) + "s";
+
+    document.getElementById("sphere-container").appendChild(sphere);
+
+    setTimeout(() => { sphere.remove(); }, 15000);
+  }
+
+  // Continuous creation
+  setInterval(createSphere, 700);
+
   // -------------------- Voice Input --------------------
   voiceBtn.addEventListener('click', async () => {
     voicePopup.classList.remove('hidden');
@@ -276,11 +303,15 @@ window.onload = () => {
   // -------------------- Theme Loader --------------------
   function applyTheme(emotion) {
     const themes = {
-      admiration: "theme/admiration.html", annoyance: "theme/anger.html",
+      admiration: "theme/admiration.html", annoyance: "theme/annoyance.html",
       curiosity: "theme/curious.html", joy: "theme/happy.html", sadness: "theme/sad.html",
-      anger: "theme/anger.html", love: "theme/love.html", calm: "theme/calm.html",
-      relif: "theme/calm.html", surprise: "theme/surprise.html", excitement: "theme/exited.html",
-      fear: "theme/fear.html", neutral: "theme/neutral.html"
+      anger: "theme/anger.html", love: "theme/love.html", caring: "theme/caring.html",
+      remorse: "theme/sad.html", surprise: "theme/surprise.html", excitement: "theme/exited.html",
+      fear: "theme/fear.html", neutral: "theme/neutral.html", nervousness: "theme/nervousness.html",
+      embarrassment: "theme/embarss.html", gratitude: "theme/caring.html", pride: "theme/surprise.html",
+      amusement: "theme/exited.html", disgust: "theme/disgust.html", desire: "theme/desire.html",
+      approval: "theme/desire.html", disapproval: "theme/disapprov.html", disappointment: "theme/disapprov.html",
+      confusion: "theme/confuse.html"
     };
 
     const file = themes[emotion] || themes.neutral;

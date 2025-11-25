@@ -1,0 +1,97 @@
+<style>
+    body.embarrassed-active {
+        background: linear-gradient(120deg, #FFD1D1, #FFC4E1, #F8B4C4);
+        background-size: 200% 200%;
+        animation: blushMove 9s ease-in-out infinite;
+    }
+
+    @keyframes blushMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .sweat {
+        position: absolute;
+        font-size: 18px;
+        color: rgba(255, 255, 255, 0.8);
+        animation: sweatFall 2.6s linear forwards;
+        pointer-events: none;
+    }
+
+    @keyframes sweatFall {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(120vh) rotate(15deg); opacity: 0; }
+    }
+
+    .blush-glow {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(20px);
+        background: radial-gradient(circle, rgba(255, 130, 150, 0.5), rgba(255, 130, 150, 0));
+        opacity: 0.45;
+        animation: blushPulse 4s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+    @keyframes blushPulse {
+        0% { transform: scale(1); opacity: 0.45; }
+        50% { transform: scale(1.25); opacity: 0.6; }
+        100% { transform: scale(1); opacity: 0.45; }
+    }
+</style>
+
+<div id="theme-animation-container"></div>
+
+<script>
+    const container = document.getElementById("theme-animation-container");
+
+    function startTheme() {
+        document.body.classList.add('embarrassed-active');
+
+        // Prepare interval list
+        window.__embarIntervals = window.__embarIntervals || [];
+
+        function createSweat() {
+            const el = document.createElement('div');
+            el.className = 'sweat';
+            el.textContent = "🫠";
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.top = '-5vh';
+            el.style.fontSize = (16 + Math.random() * 10) + 'px';
+            el.style.animationDuration = (2 + Math.random()) + 's';
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
+
+        function createBlush() {
+            const el = document.createElement('div');
+            el.className = 'blush-glow';
+            const size = Math.random() * 90 + 70;
+            el.style.width = size + 'px';
+            el.style.height = size + 'px';
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.top = Math.random() * 100 + 'vh';
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 5000);
+        }
+
+        // Register intervals so they can be stopped
+        window.__embarIntervals.push(setInterval(createSweat, 250));
+        window.__embarIntervals.push(setInterval(createBlush, 1500));
+    }
+
+    function stopTheme() {
+        // Stop all intervals
+        if (window.__embarIntervals) {
+            window.__embarIntervals.forEach(i => clearInterval(i));
+            window.__embarIntervals = [];
+        }
+
+        // Remove all animations instantly
+        container.innerHTML = "";
+
+        // Remove background animation
+        document.body.classList.remove('embarrassed-active');
+    }
+</script>

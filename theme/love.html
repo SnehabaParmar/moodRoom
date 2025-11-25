@@ -1,113 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Love Emotion Theme</title>
-<style>
-  body.theme-active {
-    background: linear-gradient(135deg, #ff9ccf, #ff6fa3, #ffdde1);
-    overflow: hidden;
-    transition: background 0.5s ease;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Love Emotion Theme</title>
 
-  .bubble {
-    position: absolute;
-    bottom: -100px;
-    font-size: 30px; 
-    animation: floatUp 6s linear infinite;
-    opacity: 0.5;
-  }
+  <style>
+    body.theme-active {
+      background: linear-gradient(135deg, #ff9ccf, #ff6fa3, #ffdde1);
+      overflow: hidden;
+      transition: background 0.5s ease;
+    }
 
-  @keyframes floatUp {
-    0% { transform: translateY(0) scale(1); opacity: .9; }
-    100% { transform: translateY(-120vh) scale(1.6); opacity: 0; }
-  }
+    /* container for all animations */
+    #theme-animation-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
 
-  .heart {
-    position: fixed;
-    width: 16px;
-    height: 16px;
-    transform: rotate(-45deg);
-    background-color: red;
-    clip-path: polygon(50% 0%, 100% 35%, 80% 100%, 50% 75%, 20% 100%, 0 35%);
-    opacity: 0.95;
-    pointer-events: none;
-  }
-</style>
+    .bubble {
+      position: absolute;
+      bottom: -100px;
+      font-size: 30px;
+      animation: floatUp 6s linear infinite;
+      opacity: 0.5;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: .9;
+      }
+
+      100% {
+        transform: translateY(-120vh) scale(1.6);
+        opacity: 0;
+      }
+    }
+
+    .heart {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      transform: rotate(-45deg);
+      background-color: red;
+      clip-path: polygon(50% 0%, 100% 35%, 80% 100%, 50% 75%, 20% 100%, 0 35%);
+      opacity: 0.95;
+    }
+  </style>
+
 </head>
+
 <body>
 
-<script>
-function startTheme() {
-  document.body.classList.add('theme-active');
-  window.__themeIntervals = window.__themeIntervals || [];
+  <!-- NEW: container to hold bubbles & hearts -->
+  <div id="theme-animation-container"></div>
 
-  // Floating bubbles
-  function createBubble() {
-    const bubble = document.createElement("div");
-    const loveEmojis = ["❤️","💕","💞","💗","💓","💘","💖","😍","🥰"];
-    bubble.textContent = loveEmojis[Math.floor(Math.random() * loveEmojis.length)];
-    bubble.classList.add("bubble");
-    bubble.style.left = Math.random() * 100 + "vw";
-    bubble.style.fontSize = (25 + Math.random() * 25) + "px";
-    bubble.style.animationDuration = (6 + Math.random() * 3) + "s";
-    document.body.appendChild(bubble);
-    setTimeout(() => bubble.remove(), 7000);
-  }
-  window.__themeIntervals.push(setInterval(createBubble, 700));
+  <script>
+    function startTheme() {
+      document.body.classList.add('theme-active');
 
-  // Click bursts
-  function createBurst(e) {
-    const COLORS = ['#ff3c6b','#ff66a3','#ffb6c1','#ff4d94'];
-    const count = 15 + Math.floor(Math.random()*10);
+      const container = document.getElementById("theme-animation-container");
+      container.style.display = "block";
 
-    for(let i=0;i<count;i++){
-      const el = document.createElement('div');
-      el.className = 'heart';
-      el.style.left = e.clientX + 'px';
-      el.style.top = e.clientY + 'px';
-      el.style.background = COLORS[Math.floor(Math.random()*COLORS.length)];
-      document.body.appendChild(el);
+      window.__themeIntervals = window.__themeIntervals || [];
 
-      const angle = (Math.random()*Math.PI/2) - Math.PI/4; // upward spread
-      const speed = Math.random()*3 + 2;
-      let life = 0;
-      const duration = 80;
+      // Floating bubbles
+      function createBubble() {
+        const bubble = document.createElement("div");
+        const loveEmojis = ["❤️", "💕", "💞", "💗", "💓", "💘", "💖", "😍", "🥰"];
+        bubble.textContent = loveEmojis[Math.floor(Math.random() * loveEmojis.length)];
+        bubble.classList.add("bubble");
+        bubble.style.left = Math.random() * 100 + "vw";
+        bubble.style.fontSize = (25 + Math.random() * 25) + "px";
+        bubble.style.animationDuration = (6 + Math.random() * 3) + "s";
 
-      function animate(){
-        if(life>=duration){ el.remove(); return; }
-        el.style.left = (e.clientX + Math.cos(angle)*speed*life) + 'px';
-        el.style.top = (e.clientY - Math.sin(angle)*speed*life - life*0.5) + 'px';
-        el.style.opacity = 1 - life/duration;
-        el.style.transform = `rotate(${ -45 + life*2 }deg)`;
-        life++;
-        requestAnimationFrame(animate);
+        container.appendChild(bubble);
+        setTimeout(() => bubble.remove(), 7000);
       }
-      animate();
+
+      window.__themeIntervals.push(setInterval(createBubble, 700));
+
+      // Click burst hearts
+      function createBurst(e) {
+        const COLORS = ['#ff3c6b', '#ff66a3', '#ffb6c1', '#ff4d94'];
+        const count = 15 + Math.floor(Math.random() * 10);
+
+        for (let i = 0; i < count; i++) {
+          const el = document.createElement('div');
+          el.className = 'heart';
+
+          el.style.left = e.clientX + 'px';
+          el.style.top = e.clientY + 'px';
+          el.style.background = COLORS[Math.floor(Math.random() * COLORS.length)];
+
+          container.appendChild(el);
+
+          const angle = (Math.random() * Math.PI / 2) - Math.PI / 4; // upward spread
+          const speed = Math.random() * 3 + 2;
+          let life = 0;
+          const duration = 80;
+
+          function animate() {
+            if (life >= duration) { el.remove(); return; }
+            el.style.left = (e.clientX + Math.cos(angle) * speed * life) + 'px';
+            el.style.top = (e.clientY - Math.sin(angle) * speed * life - life * 0.5) + 'px';
+            el.style.opacity = 1 - life / duration;
+            el.style.transform = `rotate(${-45 + life * 2}deg)`;
+            life++;
+            requestAnimationFrame(animate);
+          }
+          animate();
+        }
+      }
+
+      window.__themeClick = createBurst;
+      document.addEventListener('click', window.__themeClick);
     }
-  }
 
-  window.__themeClick = createBurst;
-  document.addEventListener('click', window.__themeClick);
-}
+    function stopTheme() {
+      document.body.classList.remove('theme-active');
 
-function stopTheme() {
-  document.body.classList.remove('theme-active');
-  if(window.__themeIntervals){
-    window.__themeIntervals.forEach(i=>clearInterval(i));
-    window.__themeIntervals = [];
-  }
-  if(window.__themeClick){
-    document.removeEventListener('click', window.__themeClick);
-    window.__themeClick = null;
-  }
-  document.querySelectorAll('.bubble, .heart').forEach(e=>e.remove());
-}
+      const container = document.getElementById("theme-animation-container");
 
-// auto-start
-startTheme();
-</script>
+      if (window.__themeIntervals) {
+        window.__themeIntervals.forEach(i => clearInterval(i));
+      }
+      window.__themeIntervals = [];
+
+      if (window.__themeClick) {
+        document.removeEventListener('click', window.__themeClick);
+        window.__themeClick = null;
+      }
+
+      // Clear all hearts + bubbles
+      container.innerHTML = "";
+      container.style.display = "none";
+    }
+
+    // auto-start for testing
+    startTheme();
+  </script>
 
 </body>
+
 </html>

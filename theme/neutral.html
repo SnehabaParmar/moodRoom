@@ -21,13 +21,12 @@
       font-family: 'Poppins', sans-serif;
       position: relative;
       background: url("https://static.vecteezy.com/system/resources/thumbnails/017/396/220/small/fashion-style-template-with-abstract-shapes-in-pastel-and-plant-colors-neutral-background-with-minimalistic-theme-vector.jpg") no-repeat center/cover;
-      background-size: 100% 100%;
     }
-    /* Floating Orbs ⚪ */
+
     .orb {
       position: absolute;
       border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #e3e383, rgba(200, 200, 200, 0.3));
+      background: radial-gradient(circle at 30% 30%, #bcb89c, rgba(200, 200, 200, 0.3));
       box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
       opacity: 0.7;
       animation: floatOrb 12s ease-in-out forwards;
@@ -52,7 +51,6 @@
       }
     }
 
-    /* Soft glows for extra calm effect */
     .glow {
       position: absolute;
       width: 200px;
@@ -82,24 +80,51 @@
 </head>
 
 <body>
-
   <div class="glow"></div>
 
   <script>
-    // Floating orbs
+    let themeIntervalIds = [];
+    let themeRunning = false;
+
+    // Utility random helpers
+    const rnd = (min, max) => Math.random() * (max - min) + min;
+
     function createOrb() {
       const orb = document.createElement("div");
       orb.classList.add("orb");
-      const size = Math.random() * 50 + 30;
+      const size = rnd(30, 80);
       orb.style.width = orb.style.height = size + "px";
-      orb.style.left = Math.random() * 100 + "vw";
-      orb.style.animationDuration = (8 + Math.random() * 6) + "s";
+      orb.style.left = rnd(0, 100) + "vw";
+      orb.style.animationDuration = rnd(8, 14) + "s";
       document.body.appendChild(orb);
       setTimeout(() => orb.remove(), 15000);
     }
 
-    // Continuous creation
-    setInterval(createOrb, 600);
+    function startTheme() {
+      if (themeRunning) return;
+      themeRunning = true;
+
+      // Create orbs continuously
+      function orbLoop() {
+        if (!themeRunning) return;
+        createOrb();
+        const id = setTimeout(orbLoop, 600);
+        themeIntervalIds.push(id);
+      }
+      orbLoop();
+    }
+
+    function stopTheme() {
+      themeRunning = false;
+      // Clear all pending intervals
+      themeIntervalIds.forEach(id => clearTimeout(id));
+      themeIntervalIds = [];
+      // Remove all existing orbs
+      document.querySelectorAll(".orb").forEach(o => o.remove());
+    }
+
+    // Optional: auto-start
+    startTheme();
   </script>
 </body>
 

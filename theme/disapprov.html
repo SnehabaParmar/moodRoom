@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disapproval Theme</title>
+    <style>
+        body.theme-active {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #3a0000, #000);
+        }
+
+        /* Single container */
+        #theme-animation-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        /* Floating emojis */
+        .disapprove {
+            position: absolute;
+            font-size: 50px;
+            opacity: 0;
+            animation: floatUp 4s linear forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) scale(0.8);
+                opacity: 0;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            80% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-40vh) scale(1);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="theme-animation-container"></div>
+
+    <script>
+        const container = document.getElementById("theme-animation-container");
+        const disapproveEmojis = ["❌", "😑"];
+        window.__themeIntervals = [];
+
+        function startTheme() {
+            stopTheme(); // clear previous theme if any
+            document.body.classList.add("theme-active");
+
+            function createDisapprove() {
+                const d = document.createElement("div");
+                d.className = "disapprove";
+                d.textContent = disapproveEmojis[Math.floor(Math.random() * disapproveEmojis.length)];
+                d.style.left = Math.random() * 90 + "vw";
+                d.style.fontSize = Math.random() * 30 + 30 + "px";
+                d.style.animationDuration = (3 + Math.random() * 2) + "s";
+                container.appendChild(d);
+                setTimeout(() => d.remove(), 5000);
+            }
+
+            // Interval for floating emojis
+            window.__themeIntervals.push(setInterval(createDisapprove, 700));
+
+            // Initial burst
+            for (let i = 0; i < 5; i++) { setTimeout(createDisapprove, i * 300); }
+        }
+
+        function stopTheme() {
+            window.__themeIntervals.forEach(i => clearInterval(i));
+            window.__themeIntervals = [];
+            container.innerHTML = "";
+            document.body.classList.remove("theme-active");
+        }
+
+        // Example auto-start
+        // startTheme();
+    </script>
+</body>
+
+</html>
